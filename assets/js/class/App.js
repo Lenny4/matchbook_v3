@@ -43,7 +43,7 @@ class App {
 
     initTabs() {
         this.matchs.forEach((match, index) => {
-            const matchIndex = "match_" + index;
+            const matchIndex = "match_" + match.eventId;
             $("#nav").append(`
             <li class="nav-item">
                 <a class="nav-link" data-toggle="tab" href="#` + matchIndex + `">` + match.name + `</a>
