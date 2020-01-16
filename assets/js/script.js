@@ -1,4 +1,4 @@
 "use strict";
 const App = require('./class/App');
 const app = new App();
-console.log(app);
+app.init();
