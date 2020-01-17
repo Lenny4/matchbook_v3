@@ -27,37 +27,46 @@ class ChartManager {
         };
     }
 
-    createChart(match) {
+    createCharts(match) {
+        const result = [];
+
+        //region create charts
         const fields = [['time', 'cheval1', this.pointLabel, 'cheval2', this.pointLabel]];
-        //todo use match datas
         const data = [
             [-100, 60, null, 50, null],
             [-50, 50, this.pointValue, 40, this.pointValue],
             [-0, 40, null, 70, null]
         ];
-        return GoogleCharts.api.visualization.arrayToDataTable(fields.concat(data));
+        this.addChartToDisplayChart(result, "mon titre", fields.concat(data));
+        //endregion
+
+        return result;
     }
 
     displayChart(eventId) {
         const match = this.app.matchs.find(x => parseInt(x.eventId) === parseInt(eventId));
-        this.drawChart(match);
+        //get chart data
+        const charts = this.createCharts(match);
+        charts.forEach((data) => {
+            //create div to display chart
+            const chartDivId = randomstring.generate();
+            $("#match_" + match.eventId).append("<div id='" + chartDivId + "'></div>");
+            const pie_1_chart = new GoogleCharts.api.visualization.LineChart(document.getElementById(chartDivId));
+
+            //get the options
+            const options = this.getOptions();
+            options.title = data.title;
+
+            //draw chart
+            pie_1_chart.draw(data.chart, options);
+        });
     }
 
-    drawChart(match) {
-        //get chart data
-        const data = this.createChart(match);
-
-        //create div to display chart
-        const chartDivId = randomstring.generate();
-        $("#match_" + match.eventId).append("<div id='" + chartDivId + "'></div>");
-        const pie_1_chart = new GoogleCharts.api.visualization.LineChart(document.getElementById(chartDivId));
-
-        //get the options
-        const options = this.getOptions();
-        options.title = "mon titre";
-
-        //draw chart
-        pie_1_chart.draw(data, options);
+    addChartToDisplayChart(result, title, data) {
+        result.push({
+            title: title,
+            chart: GoogleCharts.api.visualization.arrayToDataTable(data),
+        });
     }
 
     getOptions() {
