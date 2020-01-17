@@ -15,7 +15,7 @@ class ChartManager {
             width: 1340,
             pointSize: 1,
             dataOpacity: 1,
-            // chartArea: {left: 50, top: 1, width: "95%", height: "90%"},
+            // chartArea: {left: 50, top: 1, width: "90%", height: "85%"},
             series: {
                 0: {color: '#43459d'},
                 1: {color: '#e2431e'},
@@ -31,13 +31,14 @@ class ChartManager {
         const result = [];
 
         //region create charts
-        const fields = [['time', 'cheval1', this.pointLabel, 'cheval2', this.pointLabel]];
-        const data = [
-            [-100, 60, null, 50, null],
-            [-50, 50, this.pointValue, 40, this.pointValue],
-            [-0, 40, null, 70, null]
-        ];
-        this.addChartToDisplayChart(result, "mon titre", fields.concat(data));
+        match.markets.runners.forEach((runner) => {
+            const fields = [['time', runner.name, this.pointLabel]];
+            const data = [];
+            runner.prices.forEach((price) => {
+                data.push([price.time, price.value[0].odds, null]);
+            });
+            this.addChartToDisplayChart(result, "mon titre", fields.concat(data));
+        });
         //endregion
 
         return result;
