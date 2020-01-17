@@ -1,6 +1,7 @@
 "use strict";
 const clone = require('clone');
 const randomstring = require("randomstring");
+const regression = require("regression");
 
 class ChartManager {
     constructor(app) {
@@ -19,7 +20,7 @@ class ChartManager {
             series: {
                 0: {color: '#43459d'},
                 1: {color: '#e2431e'},
-                2: {color: '#e2431e'},
+                2: {color: '#2de272'},
                 3: {color: '#e2431e'},
                 4: {color: '#e2431e'},
                 5: {color: '#6f9654'},
@@ -32,16 +33,54 @@ class ChartManager {
 
         //region create charts
         match.markets.runners.forEach((runner) => {
-            const fields = [['time', runner.name, this.pointLabel]];
+            const fields = [['time', 'Volume', runner.name, 'Regression']];
             const data = [];
+
+            const maxOdd =  runner.prices.reduce(function(prev, current) {
+                return (prev.value[4].odds > current.value[4].odds) ? prev : current
+            }).value[4].odds;
+
+            let maxAmount = 0;
             runner.prices.forEach((price) => {
-                data.push([price.time, price.value[0].odds, null]);
+                const amount = this.getSommeVolume(price.value);
+                if(amount > maxAmount){
+                    maxAmount = amount;
+                }
             });
+
+            runner.prices.forEach((price) => {
+                const odd = price.value[4].odds;
+                const amount = this.getSommeVolume(price.value);
+                data.push([price.time, (amount / maxAmount), (odd / maxOdd)]);
+            });
+
+            const volumeData = data.map(function(val){
+                return val.slice(0, 2); // On ne prend que les 2 première colonne (temps / volume)
+            });
+
+            const startIndex = 100;
+            for(let i = 0; i < data.length; i++){
+                if(i < startIndex){
+                    data[i].push(null);
+                } else {
+                    const regr = regression.linear(volumeData.slice(i - startIndex, i));
+                    data[i].push(regr.points[0][1]);
+                }
+            }
+
             this.addChartToDisplayChart(result, "mon titre", fields.concat(data));
         });
         //endregion
 
         return result;
+    }
+
+    getSommeVolume(priceValues) {
+        let amount = 0;
+        priceValues.forEach((value) => {
+            amount += value['available-amount'];
+        });
+        return amount;
     }
 
     displayChart(eventId) {
