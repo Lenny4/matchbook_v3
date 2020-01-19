@@ -109,7 +109,7 @@ class ChartManager {
             }
         }
         return idxs;
-    };
+    }
 
     getOptions() {
         return clone(this.options);
