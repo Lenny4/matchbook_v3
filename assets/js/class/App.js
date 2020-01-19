@@ -7,7 +7,7 @@ const match_1 = require('../../../matchs/1');
 // const match_5 = require('../../../matchs/5');
 // const match_6 = require('../../../matchs/6');
 // const match_7 = require('../../../matchs/7');
-// const match_8 = require('../../../matchs/8');
+const match_8 = require('../../../matchs/8');
 
 class App {
     constructor() {
@@ -24,7 +24,7 @@ class App {
         // this.matchs.push(match_5);
         // this.matchs.push(match_6);
         // this.matchs.push(match_7);
-        // this.matchs.push(match_8);
+        this.matchs.push(match_8);
 
         this.initTabs();
         this.registerEvent();

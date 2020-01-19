@@ -105,7 +105,7 @@ class ChartManager {
 
     formatData(data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
         if (reduceTo1 === true) {
-            const numbersIndex = this.findIndexOfNumbers(data[1]);
+            const numbersIndex = this.findIndexOfNumbers(data[0]);
             numbersIndex.forEach((i) => {
                 const max = data.reduce((prev, current) => {
                     return (prev[i] > current[i]) ? prev : current
@@ -140,7 +140,7 @@ class ChartManager {
     findIndexOfNumbers(array) {
         const idxs = [];
         for (let i = array.length - 1; i >= 0; i--) {
-            if (typeof array[i] === "number" && i > 0) {
+            if (typeof array[i] === "string" && array[i] !== "time") {
                 idxs.unshift(i);
             }
         }
