@@ -68,7 +68,7 @@ class ChartManager {
     findTopAndBottom(data) {
         let lastTopBottom = null;
         data.forEach((array, index) => {
-            if (index > 0) {
+            if (index > 1000) {
                 const time = array[0];
                 const backOdd = array[1];
                 const availableAmount1 = array[3];
@@ -77,9 +77,16 @@ class ChartManager {
                 const availableAmount4 = array[6];
                 const availableAmount5 = array[7];
 
-                const goingUp = (
-                    (availableAmount3 > backOdd && lastTopBottom !== "up")
-                );
+                let goingUp = false;
+                if (availableAmount3 > backOdd && lastTopBottom !== "up") {
+                    for (let i = index; i >= index - 100; i--) {
+                        if (data[i][6] > 0.5) {
+                            goingUp = true;
+                            break;
+                        }
+                    }
+                }
+
                 const goingDown = false;
 
                 if (goingUp) {
@@ -122,7 +129,7 @@ class ChartManager {
 
     formatData(data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
         if (reduceTo1 === true) {
-            const numbersIndex = this.findIndexOfNumbers(data[1]);
+            const numbersIndex = this.findIndexOfNumbers(data[0]);
             numbersIndex.forEach((i) => {
                 const max = data.reduce((prev, current) => {
                     return (prev[i] > current[i]) ? prev : current
@@ -157,7 +164,7 @@ class ChartManager {
     findIndexOfNumbers(array) {
         const idxs = [];
         for (let i = array.length - 1; i >= 0; i--) {
-            if (typeof array[i] === "number" && i > 0) {
+            if (typeof array[i] === "string" && array[i] !== "time") {
                 idxs.unshift(i);
             }
         }
