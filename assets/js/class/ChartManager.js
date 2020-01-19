@@ -26,6 +26,16 @@ class ChartManager {
             //     5: {color: '#6f9654'},
             // }
         };
+
+        this.parameters = {
+            goingUp1: {
+                availableAmount4: 0.5,
+                time: 100,
+            },
+            goingUp2: {
+                backOdd: 0.05,
+            },
+        };
     }
 
     createCharts(match) {
@@ -57,7 +67,7 @@ class ChartManager {
                 dataBack.push([price.time, currentMaxOddBack, null, currentAvailableAmount1, currentAvailableAmount2, currentAvailableAmount3, currentAvailableAmount4]);
             });
             const dataFormatedArray = this.formatData(fieldsBack.concat(dataBack), true, [3, 4, 5, 6], 400);
-            this.findTopAndBottom(dataFormatedArray);
+            this.findTopAndBottom(dataFormatedArray, runner.name);
             this.addChartToDisplayChart(result, runner.name, dataFormatedArray);
         });
         //endregion
@@ -65,8 +75,11 @@ class ChartManager {
         return result;
     }
 
-    findTopAndBottom(data) {
+    findTopAndBottom(data, runnerName) {
         let lastTopBottom = null;
+
+        let goingUp2 = false;
+
         data.forEach((array, index) => {
             if (index > 1000) {
                 const time = array[0];
@@ -75,25 +88,64 @@ class ChartManager {
                 const availableAmount2 = array[4];
                 const availableAmount3 = array[5];
                 const availableAmount4 = array[6];
-                const availableAmount5 = array[7];
 
                 let goingUp = false;
-                if (availableAmount3 > backOdd && lastTopBottom !== "up") {
-                    for (let i = index; i >= index - 100; i--) {
-                        if (data[i][6] > 0.5) {
+                let goingDown = false;
+
+                //region goingUp1
+                /**
+                 * si le availableAmount3 est supérieur au backOdd
+                 * et que sur les (goingUp1.time) dernière valeur le availableAmount4 à été au dessus de (goingUp1.availableAmount4)
+                 */
+                if (availableAmount3 > backOdd) {
+                    for (let i = index; i >= index - this.parameters.goingUp1.time; i--) {
+                        if (data[i][6] > this.parameters.goingUp1.availableAmount4) {
                             goingUp = true;
                             break;
                         }
                     }
                 }
+                //endregion
+                //region goingUp2
+                /**
+                 * dans le cas ou le availableAmount2 et le availableAmount3 montent au dessus du back
+                 * si le le availableAmount2 et le availableAmount3 est inférieur au back (avec un back auquel on ajoute goingUp2.backOdd)
+                 *
+                 * si on ajoute goingUp2.backOdd c'est pour pouvoir placer notre lay un peu avant que la cote ne monte
+                 */
+                const condition = (
+                    (availableAmount2 > backOdd && availableAmount3 > backOdd)
+                    //this line verify if both line are going up
+                    && (data[index - 1][4] < availableAmount2 && data[index - 1][5] < availableAmount3)
+                );
+                if (condition && goingUp2 === false) {
+                    goingUp2 = true;
+                }
+                const backOddToVerify = backOdd + this.parameters.goingUp2.backOdd;
+                if (goingUp2 === true && (
+                    (availableAmount2 < backOddToVerify && availableAmount3 < backOddToVerify)
+                    //this line verify if both line are going down
+                    && (data[index - 1][4] > availableAmount2 && data[index - 1][5] > availableAmount3)
+                )) {
+                    goingUp2 = false;
+                    goingUp = true;
+                }
+                //endregion
 
-                const goingDown = false;
+                //region goingDown1
+                /**
+                 * si availableAmount1 > backOdd && availableAmount2 > backOdd && availableAmount3 < backOdd
+                 */
+                if (availableAmount1 > backOdd && availableAmount2 > backOdd && availableAmount3 < backOdd) {
+                    goingDown = true;
+                }
+                //endregion
 
-                if (goingUp) {
+                if (goingUp && lastTopBottom !== "up") {
                     array[2] = this.pointValueUp;
                     lastTopBottom = "up";
                 }
-                if (goingDown) {
+                if (goingDown && lastTopBottom !== "bottom") {
                     array[2] = this.pointValueDown;
                     lastTopBottom = "bottom";
                 }
