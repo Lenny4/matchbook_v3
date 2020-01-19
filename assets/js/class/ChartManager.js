@@ -66,6 +66,7 @@ class ChartManager {
     }
 
     findTopAndBottom(data) {
+        let lastTopBottom = null;
         data.forEach((array, index) => {
             if (index > 0) {
                 const time = array[0];
@@ -77,12 +78,18 @@ class ChartManager {
                 const availableAmount5 = array[7];
 
                 const goingUp = (
-                    (availableAmount3 > backOdd)
+                    (availableAmount3 > backOdd && lastTopBottom !== "up")
                 );
                 const goingDown = false;
 
-                if (goingUp) array[2] = this.pointValueUp;
-                if (goingDown) array[2] = this.pointValueDown;
+                if (goingUp) {
+                    array[2] = this.pointValueUp;
+                    lastTopBottom = "up";
+                }
+                if (goingDown) {
+                    array[2] = this.pointValueDown;
+                    lastTopBottom = "bottom";
+                }
             }
         });
     }
