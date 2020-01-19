@@ -66,7 +66,6 @@ class ChartManager {
     addChartToDisplayChart(result, title, data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
         if (reduceTo1 === true) {
             const numbersIndex = this.findIndexOfNumbers(data[1]);
-            console.log(numbersIndex);
             numbersIndex.forEach((i) => {
                 const max = data.reduce((prev, current) => {
                     return (prev[i] > current[i]) ? prev : current
