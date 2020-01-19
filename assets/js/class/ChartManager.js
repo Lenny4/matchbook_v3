@@ -6,7 +6,8 @@ class ChartManager {
     constructor(app) {
         this.app = app;
         this.pointLabel = {'type': 'string', 'role': 'style'};
-        this.pointValue = "point { size: 10; shape-type: star; fill-color: blue; }";
+        this.pointValueUp = "point { size: 12; shape-type: star; fill-color: black; }";
+        this.pointValueDown = "point { size: 12; shape-type: star; fill-color: red; }";
         this.options = {
             title: null,
             curveType: 'function',
@@ -32,16 +33,41 @@ class ChartManager {
 
         //region create charts
         match.markets.runners.forEach((runner) => {
-            const fields = [['time', runner.name, this.pointLabel]];
-            const data = [];
+            const fieldsBack = [['time', runner.name, this.pointLabel]];
+            const dataBack = [];
+
             runner.prices.forEach((price) => {
-                data.push([price.time, price.value[0].odds, null]);
+                const backPrices = price.value.filter(x => x.side === "back");
+                const currentMaxOddBack = backPrices.reduce((prev, current) => {
+                    return (prev.odds > current.odds) ? prev : current
+                }).odds;
+
+                dataBack.push([price.time, currentMaxOddBack, null]);
             });
-            this.addChartToDisplayChart(result, runner.name, fields.concat(data), true, [1], 400);
+            const dataFormatedArray = this.formatData(fieldsBack.concat(dataBack), true, [1], 400);
+            this.findTopAndBottom(dataFormatedArray);
+            this.addChartToDisplayChart(result, runner.name, dataFormatedArray);
         });
         //endregion
 
         return result;
+    }
+
+    findTopAndBottom(data) {
+        data.forEach((array, index) => {
+            if (index > 0) {
+                const time = array[0];
+                const backOdd = array[1];
+
+                const goingUp = (
+                    (backOdd > 0.94)
+                );
+                const goingDown = false;
+
+                if (goingUp) array[2] = this.pointValueUp;
+                if (goingDown) array[2] = this.pointValueDown;
+            }
+        });
     }
 
     displayChart(eventId) {
@@ -63,7 +89,14 @@ class ChartManager {
         });
     }
 
-    addChartToDisplayChart(result, title, data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
+    addChartToDisplayChart(result, title, data) {
+        result.push({
+            title: title,
+            chart: GoogleCharts.api.visualization.arrayToDataTable(data),
+        });
+    }
+
+    formatData(data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
         if (reduceTo1 === true) {
             const numbersIndex = this.findIndexOfNumbers(data[1]);
             numbersIndex.forEach((i) => {
@@ -94,10 +127,7 @@ class ChartManager {
                 }
             }
         }
-        result.push({
-            title: title,
-            chart: GoogleCharts.api.visualization.arrayToDataTable(data),
-        });
+        return data;
     }
 
     findIndexOfNumbers(array) {
