@@ -6,7 +6,8 @@ class ChartManager {
     constructor(app) {
         this.app = app;
         this.pointLabel = {'type': 'string', 'role': 'style'};
-        this.pointValue = "point { size: 10; shape-type: star; fill-color: blue; }";
+        this.pointValueUp = "point { size: 12; shape-type: star; fill-color: black; }";
+        this.pointValueDown = "point { size: 12; shape-type: star; fill-color: red; }";
         this.options = {
             title: null,
             curveType: 'function',
@@ -32,7 +33,7 @@ class ChartManager {
 
         //region create charts
         match.markets.runners.forEach((runner) => {
-            const fieldsBack = [['time', runner.name, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"]];
+            const fieldsBack = [['time', runner.name, this.pointLabel, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"]];
             const dataBack = [];
 
             runner.prices.forEach((price) => {
@@ -53,14 +54,36 @@ class ChartManager {
                 let currentAvailableAmount4 = null;
                 if ("3" in backPrices) currentAvailableAmount4 = backPrices[3]["available-amount"];
 
-                dataBack.push([price.time, currentMaxOddBack, currentAvailableAmount1, currentAvailableAmount2, currentAvailableAmount3, currentAvailableAmount4]);
+                dataBack.push([price.time, currentMaxOddBack, null, currentAvailableAmount1, currentAvailableAmount2, currentAvailableAmount3, currentAvailableAmount4]);
             });
-
-            this.addChartToDisplayChart(result, runner.name, fieldsBack.concat(dataBack), true, [2, 3, 4, 5], 400);
+            this.findTopAndBottom(dataBack);
+            this.addChartToDisplayChart(result, runner.name, fieldsBack.concat(dataBack), true, [3, 4, 5, 6], 400);
         });
         //endregion
 
         return result;
+    }
+
+    findTopAndBottom(data) {
+        data.forEach((array, index) => {
+            const time = array[0];
+            const backOdd = array[1];
+            const availableAmount1 = array[3];
+            const availableAmount2 = array[4];
+            const availableAmount3 = array[5];
+            const availableAmount4 = array[6];
+            const availableAmount5 = array[7];
+
+            const goingUp = (time === -390);
+            const goingDown = (time === -35);
+
+            if (goingUp) {
+                array[2] = this.pointValueUp;
+            }
+            if (goingDown) {
+                array[2] = this.pointValueDown;
+            }
+        });
     }
 
     displayChart(eventId) {
