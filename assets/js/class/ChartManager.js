@@ -84,8 +84,8 @@ class ChartManager {
 
     addChartToDisplayChart(result, title, data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
         if (reduceTo1 === true) {
-            const maxIndex = data[0].length;
-            for (let i = 1; i < maxIndex; i++) {
+            const numbersIndex = this.findIndexOfNumbers(data[1]);
+            numbersIndex.forEach((i) => {
                 const max = data.reduce((prev, current) => {
                     return (prev[i] > current[i]) ? prev : current
                 })[i];
@@ -94,7 +94,7 @@ class ChartManager {
                         array[i] = array[i] / max;
                     }
                 });
-            }
+            });
         }
         if (indexToFlat.length > 0) {
             for (let nbFlat = 0; nbFlat < numberFlat; nbFlat++) {
@@ -117,6 +117,16 @@ class ChartManager {
             title: title,
             chart: GoogleCharts.api.visualization.arrayToDataTable(data),
         });
+    }
+
+    findIndexOfNumbers(array) {
+        const idxs = [];
+        for (let i = array.length - 1; i >= 0; i--) {
+            if (typeof array[i] === "number" && i > 0) {
+                idxs.unshift(i);
+            }
+        }
+        return idxs;
     }
 
     getOptions() {
