@@ -16,14 +16,14 @@ class ChartManager {
             pointSize: 1,
             dataOpacity: 1,
             // chartArea: {left: 50, top: 1, width: "90%", height: "85%"},
-            series: {
-                0: {color: '#43459d'},
-                1: {color: '#e2431e'},
-                2: {color: '#e2431e'},
-                3: {color: '#e2431e'},
-                4: {color: '#e2431e'},
-                5: {color: '#6f9654'},
-            }
+            // series: {
+            //     0: {color: '#43459d'},
+            //     1: {color: '#e2431e'},
+            //     2: {color: '#e2431e'},
+            //     3: {color: '#e2431e'},
+            //     4: {color: '#e2431e'},
+            //     5: {color: '#6f9654'},
+            // }
         };
     }
 
@@ -37,7 +37,7 @@ class ChartManager {
             runner.prices.forEach((price) => {
                 data.push([price.time, price.value[0].odds, null]);
             });
-            this.addChartToDisplayChart(result, "mon titre", fields.concat(data));
+            this.addChartToDisplayChart(result, runner.name, fields.concat(data), true, [1], 400);
         });
         //endregion
 
@@ -63,12 +63,53 @@ class ChartManager {
         });
     }
 
-    addChartToDisplayChart(result, title, data) {
+    addChartToDisplayChart(result, title, data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
+        if (reduceTo1 === true) {
+            const numbersIndex = this.findIndexOfNumbers(data[1]);
+            console.log(numbersIndex);
+            numbersIndex.forEach((i) => {
+                const max = data.reduce((prev, current) => {
+                    return (prev[i] > current[i]) ? prev : current
+                })[i];
+                data.forEach((array, index) => {
+                    if (index > 0) {
+                        array[i] = array[i] / max;
+                    }
+                });
+            });
+        }
+        if (indexToFlat.length > 0) {
+            for (let nbFlat = 0; nbFlat < numberFlat; nbFlat++) {
+                for (let i = 0; i < data.length; i++) {
+                    if (i > 0) {
+                        indexToFlat.forEach((thisIndexToFlat) => {
+                            if (i === 1) {
+                                data[i][thisIndexToFlat] = ((data[i][thisIndexToFlat] * 2) + data[i + 1][thisIndexToFlat]) / 3;
+                            } else if (i === data.length - 1) {
+                                data[i][thisIndexToFlat] = ((data[i][thisIndexToFlat] * 2) + data[i - 1][thisIndexToFlat]) / 3;
+                            } else {
+                                data[i][thisIndexToFlat] = ((data[i][thisIndexToFlat] * 2) + data[i + 1][thisIndexToFlat] + data[i - 1][thisIndexToFlat]) / 4;
+                            }
+                        });
+                    }
+                }
+            }
+        }
         result.push({
             title: title,
             chart: GoogleCharts.api.visualization.arrayToDataTable(data),
         });
     }
+
+    findIndexOfNumbers(array) {
+        const idxs = [];
+        for (let i = array.length - 1; i >= 0; i--) {
+            if (typeof array[i] === "number" && i > 0) {
+                idxs.unshift(i);
+            }
+        }
+        return idxs;
+    };
 
     getOptions() {
         return clone(this.options);
