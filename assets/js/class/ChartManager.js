@@ -16,14 +16,14 @@ class ChartManager {
             pointSize: 1,
             dataOpacity: 1,
             // chartArea: {left: 50, top: 1, width: "90%", height: "85%"},
-            series: {
-                0: {color: '#43459d'},
-                1: {color: '#e2431e'},
-                2: {color: '#e2431e'},
-                3: {color: '#e2431e'},
-                4: {color: '#e2431e'},
-                5: {color: '#6f9654'},
-            }
+            // series: {
+            //     0: {color: '#43459d'},
+            //     1: {color: '#e2431e'},
+            //     2: {color: '#e2431e'},
+            //     3: {color: '#e2431e'},
+            //     4: {color: '#e2431e'},
+            //     5: {color: '#6f9654'},
+            // }
         };
     }
 
@@ -32,12 +32,31 @@ class ChartManager {
 
         //region create charts
         match.markets.runners.forEach((runner) => {
-            const fields = [['time', runner.name, this.pointLabel]];
-            const data = [];
+            const fieldsBack = [['time', runner.name, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"]];
+            const dataBack = [];
+
             runner.prices.forEach((price) => {
-                data.push([price.time, price.value[0].odds, null]);
+                const backPrices = price.value.filter(x => x.side === "back");
+                const currentMaxOddBack = backPrices.reduce((prev, current) => {
+                    return (prev.odds > current.odds) ? prev : current
+                }).odds;
+
+                let currentAvailableAmount1 = null;
+                if ("0" in backPrices) currentAvailableAmount1 = backPrices[0]["available-amount"];
+
+                let currentAvailableAmount2 = null;
+                if ("1" in backPrices) currentAvailableAmount2 = backPrices[1]["available-amount"];
+
+                let currentAvailableAmount3 = null;
+                if ("2" in backPrices) currentAvailableAmount3 = backPrices[2]["available-amount"];
+
+                let currentAvailableAmount4 = null;
+                if ("3" in backPrices) currentAvailableAmount4 = backPrices[3]["available-amount"];
+
+                dataBack.push([price.time, currentMaxOddBack, currentAvailableAmount1, currentAvailableAmount2, currentAvailableAmount3, currentAvailableAmount4]);
             });
-            this.addChartToDisplayChart(result, "mon titre", fields.concat(data));
+
+            this.addChartToDisplayChart(result, runner.name, fieldsBack.concat(dataBack), true, [2, 3, 4, 5], 400);
         });
         //endregion
 
@@ -63,7 +82,37 @@ class ChartManager {
         });
     }
 
-    addChartToDisplayChart(result, title, data) {
+    addChartToDisplayChart(result, title, data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
+        if (reduceTo1 === true) {
+            const maxIndex = data[0].length;
+            for (let i = 1; i < maxIndex; i++) {
+                const max = data.reduce((prev, current) => {
+                    return (prev[i] > current[i]) ? prev : current
+                })[i];
+                data.forEach((array, index) => {
+                    if (index > 0) {
+                        array[i] = array[i] / max;
+                    }
+                });
+            }
+        }
+        if (indexToFlat.length > 0) {
+            for (let nbFlat = 0; nbFlat < numberFlat; nbFlat++) {
+                for (let i = 0; i < data.length; i++) {
+                    if (i > 0) {
+                        indexToFlat.forEach((thisIndexToFlat) => {
+                            if (i === 1) {
+                                data[i][thisIndexToFlat] = ((data[i][thisIndexToFlat] * 2) + data[i + 1][thisIndexToFlat]) / 3;
+                            } else if (i === data.length - 1) {
+                                data[i][thisIndexToFlat] = ((data[i][thisIndexToFlat] * 2) + data[i - 1][thisIndexToFlat]) / 3;
+                            } else {
+                                data[i][thisIndexToFlat] = ((data[i][thisIndexToFlat] * 2) + data[i + 1][thisIndexToFlat] + data[i - 1][thisIndexToFlat]) / 4;
+                            }
+                        });
+                    }
+                }
+            }
+        }
         result.push({
             title: title,
             chart: GoogleCharts.api.visualization.arrayToDataTable(data),
