@@ -56,8 +56,9 @@ class ChartManager {
 
                 dataBack.push([price.time, currentMaxOddBack, null, currentAvailableAmount1, currentAvailableAmount2, currentAvailableAmount3, currentAvailableAmount4]);
             });
-            this.findTopAndBottom(dataBack);
-            this.addChartToDisplayChart(result, runner.name, fieldsBack.concat(dataBack), true, [3, 4, 5, 6], 400);
+            const dataFormatedArray = this.formatData(fieldsBack.concat(dataBack), true, [3, 4, 5, 6], 400);
+            this.findTopAndBottom(dataFormatedArray);
+            this.addChartToDisplayChart(result, runner.name, dataFormatedArray);
         });
         //endregion
 
@@ -66,22 +67,22 @@ class ChartManager {
 
     findTopAndBottom(data) {
         data.forEach((array, index) => {
-            const time = array[0];
-            const backOdd = array[1];
-            const availableAmount1 = array[3];
-            const availableAmount2 = array[4];
-            const availableAmount3 = array[5];
-            const availableAmount4 = array[6];
-            const availableAmount5 = array[7];
+            if (index > 0) {
+                const time = array[0];
+                const backOdd = array[1];
+                const availableAmount1 = array[3];
+                const availableAmount2 = array[4];
+                const availableAmount3 = array[5];
+                const availableAmount4 = array[6];
+                const availableAmount5 = array[7];
 
-            const goingUp = (time === -390);
-            const goingDown = (time === -35);
+                const goingUp = (
+                    (availableAmount3 > backOdd)
+                );
+                const goingDown = false;
 
-            if (goingUp) {
-                array[2] = this.pointValueUp;
-            }
-            if (goingDown) {
-                array[2] = this.pointValueDown;
+                if (goingUp) array[2] = this.pointValueUp;
+                if (goingDown) array[2] = this.pointValueDown;
             }
         });
     }
@@ -105,7 +106,14 @@ class ChartManager {
         });
     }
 
-    addChartToDisplayChart(result, title, data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
+    addChartToDisplayChart(result, title, data) {
+        result.push({
+            title: title,
+            chart: GoogleCharts.api.visualization.arrayToDataTable(data),
+        });
+    }
+
+    formatData(data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
         if (reduceTo1 === true) {
             const numbersIndex = this.findIndexOfNumbers(data[1]);
             numbersIndex.forEach((i) => {
@@ -136,10 +144,7 @@ class ChartManager {
                 }
             }
         }
-        result.push({
-            title: title,
-            chart: GoogleCharts.api.visualization.arrayToDataTable(data),
-        });
+        return data;
     }
 
     findIndexOfNumbers(array) {
