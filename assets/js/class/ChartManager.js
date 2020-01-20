@@ -44,7 +44,7 @@ class ChartManager {
 
                 dataBack.push([price.time, currentMaxOddBack, null]);
             });
-            const dataFormatedArray = this.formatData(fieldsBack.concat(dataBack), true, [1], 400);
+            const dataFormatedArray = this.formatData(fieldsBack.concat(dataBack), true, true, [1], 400);
             this.findTopAndBottom(dataFormatedArray);
             this.addChartToDisplayChart(result, runner.name, dataFormatedArray);
         });
@@ -103,16 +103,25 @@ class ChartManager {
         });
     }
 
-    formatData(data, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
-        if (reduceTo1 === true) {
+    formatData(data, reduceTo1 = false, reduceTo0 = false, indexToFlat = [], numberFlat = 100) {
+        if (reduceTo1 === true || reduceTo0 === true) {
             const numbersIndex = this.findIndexOfNumbers(data[0]);
             numbersIndex.forEach((i) => {
-                const max = data.reduce((prev, current) => {
+                const min = data.reduce((prev, current) => {
+                    return (prev[i] < current[i]) ? prev : current
+                })[i];
+                let max = data.reduce((prev, current) => {
                     return (prev[i] > current[i]) ? prev : current
                 })[i];
+                if (reduceTo0) max = max - min;
                 data.forEach((array, index) => {
                     if (index > 0) {
-                        array[i] = array[i] / max;
+                        if (reduceTo0) {
+                            array[i] = array[i] - min;
+                        }
+                        if (reduceTo1) {
+                            array[i] = array[i] / max;
+                        }
                     }
                 });
             });
