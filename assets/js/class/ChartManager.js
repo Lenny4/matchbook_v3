@@ -7,7 +7,8 @@ class ChartManager {
     constructor(app) {
         this.app = app;
         this.pointLabel = {'type': 'string', 'role': 'style'};
-        this.pointValue = "point { size: 10; shape-type: star; fill-color: blue; }";
+        this.pointValueUp = "point { size: 12; shape-type: star; fill-color: black; }";
+        this.pointValueDown = "point { size: 12; shape-type: star; fill-color: red; }";
         this.options = {
             title: null,
             curveType: 'function',
@@ -17,14 +18,14 @@ class ChartManager {
             pointSize: 1,
             dataOpacity: 1,
             // chartArea: {left: 50, top: 1, width: "90%", height: "85%"},
-            series: {
-                0: {color: '#43459d'},
-                1: {color: '#e2431e'},
-                2: {color: '#2de272'},
-                3: {color: '#e2431e'},
-                4: {color: '#e2431e'},
-                5: {color: '#6f9654'},
-            }
+            // series: {
+            //     0: {color: '#43459d'},
+            //     1: {color: '#e2431e'},
+            //     2: {color: '#e2431e'},
+            //     3: {color: '#e2431e'},
+            //     4: {color: '#e2431e'},
+            //     5: {color: '#6f9654'},
+            // }
         };
     }
 
@@ -33,54 +34,50 @@ class ChartManager {
 
         //region create charts
         match.markets.runners.forEach((runner) => {
-            const fields = [['time', 'Volume', runner.name, 'Regression']];
-            const data = [];
-
-            const maxOdd =  runner.prices.reduce(function(prev, current) {
-                return (prev.value[4].odds > current.value[4].odds) ? prev : current
-            }).value[4].odds;
-
-            let maxAmount = 0;
-            runner.prices.forEach((price) => {
-                const amount = this.getSommeVolume(price.value);
-                if(amount > maxAmount){
-                    maxAmount = amount;
-                }
-            });
+            const fieldsBack = [['time', 'volume', runner.name, this.pointLabel]];
+            const dataBack = [];
 
             runner.prices.forEach((price) => {
-                const odd = price.value[4].odds;
-                const amount = this.getSommeVolume(price.value);
-                data.push([price.time, (amount / maxAmount), (odd / maxOdd)]);
+                const backPrices = price.value.filter(x => x.side === "back");
+                const currentMaxOddBack = backPrices.reduce((prev, current) => {
+                    return (prev.odds > current.odds) ? prev : current
+                }).odds;
+
+                const volume = this.getSommeVolume(price.value);
+
+                dataBack.push([price.time, volume, currentMaxOddBack, null]);
             });
-
-            const volumeData = data.map(function(val){
-                return val.slice(0, 2); // On ne prend que les 2 première colonne (temps / volume)
-            });
-
-            const startIndex = 100;
-            for(let i = 0; i < data.length; i++){
-                if(i < startIndex){
-                    data[i].push(null);
-                } else {
-                    const regr = regression.linear(volumeData.slice(i - startIndex, i));
-                    data[i].push(regr.points[0][1]);
-                }
-            }
-
-            this.addChartToDisplayChart(result, "mon titre", fields.concat(data));
+            const dataFormatedArray = this.formatData(fieldsBack.concat(dataBack), true, true, [1, 2], 400);
+            this.findTopAndBottom(dataFormatedArray);
+            this.addChartToDisplayChart(result, runner.name, dataFormatedArray);
         });
         //endregion
 
         return result;
     }
 
-    getSommeVolume(priceValues) {
-        let amount = 0;
-        priceValues.forEach((value) => {
-            amount += value['available-amount'];
+    findTopAndBottom(data) {
+        let lastTopBottom = null;
+        data.forEach((array, index) => {
+            if (index > 0) {
+                const time = array[0];
+                const backOdd = array[1];
+
+                const goingUp = (
+                    (backOdd > 0.94 && lastTopBottom !== "up")
+                );
+                const goingDown = false;
+
+                if (goingUp) {
+                    array[2] = this.pointValueUp;
+                    lastTopBottom = "up";
+                }
+                if (goingDown) {
+                    array[2] = this.pointValueDown;
+                    lastTopBottom = "bottom";
+                }
+            }
         });
-        return amount;
     }
 
     displayChart(eventId) {
@@ -102,11 +99,72 @@ class ChartManager {
         });
     }
 
+    getSommeVolume(priceValues) {
+        let amount = 0;
+        priceValues.forEach((value) => {
+            amount += value['available-amount'];
+        });
+        return amount;
+    }
+
     addChartToDisplayChart(result, title, data) {
         result.push({
             title: title,
             chart: GoogleCharts.api.visualization.arrayToDataTable(data),
         });
+    }
+
+    formatData(data, reduceTo1 = false, reduceTo0 = false, indexToFlat = [], numberFlat = 100) {
+        if (reduceTo1 === true || reduceTo0 === true) {
+            const numbersIndex = this.findIndexOfNumbers(data[0]);
+            numbersIndex.forEach((i) => {
+                const min = data.reduce((prev, current) => {
+                    return (prev[i] < current[i]) ? prev : current
+                })[i];
+                let max = data.reduce((prev, current) => {
+                    return (prev[i] > current[i]) ? prev : current
+                })[i];
+                if (reduceTo0) max = max - min;
+                data.forEach((array, index) => {
+                    if (index > 0) {
+                        if (reduceTo0) {
+                            array[i] = array[i] - min;
+                        }
+                        if (reduceTo1) {
+                            array[i] = array[i] / max;
+                        }
+                    }
+                });
+            });
+        }
+        if (indexToFlat.length > 0) {
+            for (let nbFlat = 0; nbFlat < numberFlat; nbFlat++) {
+                for (let i = 0; i < data.length; i++) {
+                    if (i > 0) {
+                        indexToFlat.forEach((thisIndexToFlat) => {
+                            if (i === 1) {
+                                data[i][thisIndexToFlat] = ((data[i][thisIndexToFlat] * 2) + data[i + 1][thisIndexToFlat]) / 3;
+                            } else if (i === data.length - 1) {
+                                data[i][thisIndexToFlat] = ((data[i][thisIndexToFlat] * 2) + data[i - 1][thisIndexToFlat]) / 3;
+                            } else {
+                                data[i][thisIndexToFlat] = ((data[i][thisIndexToFlat] * 2) + data[i + 1][thisIndexToFlat] + data[i - 1][thisIndexToFlat]) / 4;
+                            }
+                        });
+                    }
+                }
+            }
+        }
+        return data;
+    }
+
+    findIndexOfNumbers(array) {
+        const idxs = [];
+        for (let i = array.length - 1; i >= 0; i--) {
+            if (typeof array[i] === "string" && array[i] !== "time") {
+                idxs.unshift(i);
+            }
+        }
+        return idxs;
     }
 
     getOptions() {
