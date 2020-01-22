@@ -16,7 +16,7 @@ const ChartManager = require('./class/ChartManager');
 
 const socket = io('http://127.0.0.1:' + Const.port + '/');
 
-const app = new App();
+const app = new App(socket);
 const chartManager = new ChartManager(socket, app);
 
 GoogleCharts.load(initView);
