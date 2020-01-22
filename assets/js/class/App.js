@@ -43,17 +43,12 @@ class App {
 
     initTabs() {
         this.smallMatchs.forEach((match, index) => {
-            const matchIndex = "match_" + match.eventId;
-            $("#nav").append(`
-            <li class="nav-item">
-                <a class="nav-link" data-toggle="tab" href="#` + matchIndex + `">` + match.name + `</a>
-            </li>
-            `);
-            $("#nav-container").append(`
-                <div class="tab-pane" id="` + matchIndex + `" data-match-id="` + match.eventId + `">
-                    <button type="button" class="btn btn-primary display-chart">Display chart</button>
-                    <button type="button" class="btn btn-secondary display-log">Display log</button>
-                </div>
+            $(".smallMatchs").append(`
+            <div class="col-4">
+                <a class="card" target="_blank" style="margin-bottom: 10px" href="/?id=` + match.eventId + `">
+                    ` + match.name + `
+                </a>
+            </div>
             `);
         });
     }
