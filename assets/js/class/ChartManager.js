@@ -3,8 +3,9 @@ const clone = require('clone');
 const randomstring = require("randomstring");
 
 class ChartManager {
-    constructor(app) {
+    constructor(socket, app) {
         this.app = app;
+        this.socket = socket;
         this.pointLabel = {'type': 'string', 'role': 'style'};
         this.pointValueUp = "point { size: 12; shape-type: star; fill-color: black; }";
         this.pointValueDown = "point { size: 12; shape-type: star; fill-color: red; }";

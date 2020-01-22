@@ -4,15 +4,20 @@ require('popper.js');
 const $ = require('jquery');
 global.$ = global.jQuery = $;
 require('bootstrap');
+const io = require('socket.io-client');
+const Const = require('../../Const');
 
 import {GoogleCharts} from 'google-charts';
+
 global.GoogleCharts = GoogleCharts;
 
 const App = require('./class/App');
 const ChartManager = require('./class/ChartManager');
 
+const socket = io('http://127.0.0.1:' + Const.port + '/');
+
 const app = new App();
-const chartManager = new ChartManager(app);
+const chartManager = new ChartManager(socket, app);
 
 GoogleCharts.load(initView);
 
