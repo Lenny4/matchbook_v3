@@ -26,16 +26,6 @@ class ChartManager {
             //     5: {color: '#6f9654'},
             // }
         };
-
-        this.parameters = {
-            goingUp1: {
-                availableAmount4: 0.5,
-                time: 100,
-            },
-            goingUp2: {
-                backOdd: 0.05,
-            },
-        };
     }
 
     createCharts(match) {
@@ -46,7 +36,11 @@ class ChartManager {
             const fieldsBack = [['time', runner.name, this.pointLabel, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"]];
             const dataBack = [];
 
+            const fieldsBack2 = [['time', runner.name]];
+            const dataBack2 = [];
+
             runner.prices.forEach((price) => {
+
                 const backPrices = price.value.filter(x => x.side === "back");
                 const currentMaxOddBack = backPrices.reduce((prev, current) => {
                     return (prev.odds > current.odds) ? prev : current
@@ -65,9 +59,14 @@ class ChartManager {
                 if ("3" in backPrices) currentAvailableAmount4 = backPrices[3]["available-amount"];
 
                 dataBack.push([price.time, currentMaxOddBack, null, currentAvailableAmount1, currentAvailableAmount2, currentAvailableAmount3, currentAvailableAmount4]);
+                dataBack2.push([price.time, currentMaxOddBack]);
             });
             const dataFormatedArray = this.formatData(fieldsBack.concat(dataBack), true, [3, 4, 5, 6], 400);
+            const dataFormatedArray2 = this.formatData(fieldsBack2.concat(dataBack2));
+
             this.findTopAndBottom(dataFormatedArray, runner.name);
+
+            this.addChartToDisplayChart(result, runner.name, dataFormatedArray2);
             this.addChartToDisplayChart(result, runner.name, dataFormatedArray);
         });
         //endregion
@@ -77,8 +76,9 @@ class ChartManager {
 
     findTopAndBottom(data, runnerName) {
         let lastTopBottom = null;
+        let nbBackOddGoUp = 0;
 
-        let goingUp2 = false;
+        let goingUp1 = false;
 
         data.forEach((array, index) => {
             if (index > 1000) {
@@ -92,42 +92,44 @@ class ChartManager {
                 let goingUp = false;
                 let goingDown = false;
 
+                if (backOdd > data[index - 1][1]) {
+                    nbBackOddGoUp++;
+                }
+
                 //region goingUp1
                 /**
-                 * si le availableAmount3 est supérieur au backOdd
-                 * et que sur les (goingUp1.time) dernière valeur le availableAmount4 à été au dessus de (goingUp1.availableAmount4)
+                 * dans le cas ou availableAmount2 >= backOdd && availableAmount3 >= backOdd
+                 * dès qu'ils repassent en dessous de backOdd, si le availableAmount1 n'est pas allé au dessus de backOdd
+                 * sur les 100 dernière secondes
+                 * on fait un back dès que la côte augmente 2 fois de suite
                  */
-                if (availableAmount3 > backOdd) {
-                    for (let i = index; i >= index - this.parameters.goingUp1.time; i--) {
-                        if (data[i][6] > this.parameters.goingUp1.availableAmount4) {
-                            goingUp = true;
+                if (
+                    (availableAmount2 >= backOdd && availableAmount3 >= backOdd)
+                    && goingUp1 === false
+                ) {
+                    goingUp1 = true;
+                    for (let i = index; i >= index - 100; i--) {
+                        if (data[i][3] > backOdd) {
+                            goingUp1 = false;
                             break;
                         }
                     }
                 }
+                if (
+                    goingUp1 === true
+                    && (nbBackOddGoUp >= 2)
+                    && (backOdd > data[index - 1][1])
+                ) {
+                    goingUp1 = false;
+                    goingUp = true;
+                }
                 //endregion
+
                 //region goingUp2
                 /**
-                 * dans le cas ou le availableAmount2 et le availableAmount3 montent au dessus du back
-                 * si le le availableAmount2 et le availableAmount3 est inférieur au back (avec un back auquel on ajoute goingUp2.backOdd)
-                 *
-                 * si on ajoute goingUp2.backOdd c'est pour pouvoir placer notre lay un peu avant que la cote ne monte
+                 * si availableAmount2 > backOdd && availableAmount4 > backOdd
                  */
-                const condition = (
-                    (availableAmount2 > backOdd && availableAmount3 > backOdd)
-                    //this line verify if both line are going up
-                    && (data[index - 1][4] < availableAmount2 && data[index - 1][5] < availableAmount3)
-                );
-                if (condition && goingUp2 === false) {
-                    goingUp2 = true;
-                }
-                const backOddToVerify = backOdd + this.parameters.goingUp2.backOdd;
-                if (goingUp2 === true && (
-                    (availableAmount2 < backOddToVerify && availableAmount3 < backOddToVerify)
-                    //this line verify if both line are going down
-                    && (data[index - 1][4] > availableAmount2 && data[index - 1][5] > availableAmount3)
-                )) {
-                    goingUp2 = false;
+                if (availableAmount2 > backOdd && availableAmount4 > backOdd) {
                     goingUp = true;
                 }
                 //endregion
@@ -148,6 +150,10 @@ class ChartManager {
                 if (goingDown && lastTopBottom !== "bottom") {
                     array[2] = this.pointValueDown;
                     lastTopBottom = "bottom";
+                }
+
+                if (backOdd < data[index - 1][1]) {
+                    nbBackOddGoUp = 0;
                 }
             }
         });
@@ -183,11 +189,12 @@ class ChartManager {
         if (reduceTo1 === true) {
             const numbersIndex = this.findIndexOfNumbers(data[0]);
             numbersIndex.forEach((i) => {
-                const max = data.reduce((prev, current) => {
-                    return (prev[i] > current[i]) ? prev : current
-                })[i];
+                let max = 1;
                 data.forEach((array, index) => {
                     if (index > 0) {
+                        if (array[i] > max) {
+                            max = array[i];
+                        }
                         array[i] = array[i] / max;
                     }
                 });
