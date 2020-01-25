@@ -28,6 +28,18 @@ class MySql {
         );
     }
 
+    getEvent(id, callback) {
+        const sql = `SELECT json FROM event WHERE eventId = ? LIMIT 1;`;
+        this.pool.execute(
+            sql,
+            [id],
+            (err, event, fields) => {
+                if (err) console.log(err);
+                callback(event[0]);
+            }
+        );
+    }
+
     // insertNotificationNewMessage(notificationId, data) {
     //     this.pool.execute(
     //         'INSERT INTO `notification_new_message`(`id`, `sender_id`, `chat_room_id`, `chat_type`, `nb_message`, `notification_id`, `deletedAt`) VALUES (NULL, ?, ?, ?, ?, ?, NULL);',

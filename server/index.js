@@ -22,6 +22,11 @@ io.on('connection', (socket) => {
                     socket.emit('event', {name: 'all_events', value: allEvents});
                 });
                 break;
+            case 'get_event':
+                mySql.getEvent(data.value.id, (event) => {
+                    socket.emit('event', {name: 'get_event', value: event.json});
+                });
+                break;
             default:
                 console.log("no action define", data);
         }

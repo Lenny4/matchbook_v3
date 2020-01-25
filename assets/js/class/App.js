@@ -1,4 +1,5 @@
 "use strict";
+const queryString = require('query-string');
 
 class App {
     constructor(socket) {
@@ -11,7 +12,12 @@ class App {
     init(chartManager) {
         this.chartManager = chartManager;
 
-        this.socket.emit('event', {name: "all_events", value: null});
+        const parsed = queryString.parse(location.search);
+        if (typeof parsed.id === "string") {
+            this.socket.emit('event', {name: "get_event", value: {id: parsed.id}});
+        } else {
+            this.socket.emit('event', {name: "all_events", value: null});
+        }
 
         this.socket.on('event', (data) => {
             switch (data.name) {
@@ -23,6 +29,11 @@ class App {
                     });
                     this.initTabs();
                     this.registerEvent();
+                    break;
+                case 'get_event':
+                    const match = JSON.parse(data.value);
+                    this.matchs.push(match);
+                    this.chartManager.displayChart(match.eventId);
                     break;
                 default:
                     console.log("no action define", console.log(data));

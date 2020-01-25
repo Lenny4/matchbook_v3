@@ -43,24 +43,26 @@ class ChartManager {
             runner.prices.forEach((price) => {
 
                 const backPrices = price.value.filter(x => x.side === "back");
-                const currentMaxOddBack = backPrices.reduce((prev, current) => {
-                    return (prev.odds > current.odds) ? prev : current
-                }).odds;
+                if (Array.isArray(backPrices) && backPrices.length > 0) {
+                    const currentMaxOddBack = backPrices.reduce((prev, current) => {
+                        return (prev.odds > current.odds) ? prev : current
+                    }).odds;
 
-                let currentAvailableAmount1 = null;
-                if ("0" in backPrices) currentAvailableAmount1 = backPrices[0]["available-amount"];
+                    let currentAvailableAmount1 = null;
+                    if ("0" in backPrices) currentAvailableAmount1 = backPrices[0]["available-amount"];
 
-                let currentAvailableAmount2 = null;
-                if ("1" in backPrices) currentAvailableAmount2 = backPrices[1]["available-amount"];
+                    let currentAvailableAmount2 = null;
+                    if ("1" in backPrices) currentAvailableAmount2 = backPrices[1]["available-amount"];
 
-                let currentAvailableAmount3 = null;
-                if ("2" in backPrices) currentAvailableAmount3 = backPrices[2]["available-amount"];
+                    let currentAvailableAmount3 = null;
+                    if ("2" in backPrices) currentAvailableAmount3 = backPrices[2]["available-amount"];
 
-                let currentAvailableAmount4 = null;
-                if ("3" in backPrices) currentAvailableAmount4 = backPrices[3]["available-amount"];
+                    let currentAvailableAmount4 = null;
+                    if ("3" in backPrices) currentAvailableAmount4 = backPrices[3]["available-amount"];
 
-                dataBack.push([price.time, currentMaxOddBack, null, currentAvailableAmount1, currentAvailableAmount2, currentAvailableAmount3, currentAvailableAmount4]);
-                dataBack2.push([price.time, currentMaxOddBack]);
+                    dataBack.push([price.time, currentMaxOddBack, null, currentAvailableAmount1, currentAvailableAmount2, currentAvailableAmount3, currentAvailableAmount4]);
+                    dataBack2.push([price.time, currentMaxOddBack]);
+                }
             });
             const dataFormatedArray = this.formatData(fieldsBack.concat(dataBack), true, [3, 4, 5, 6], 400);
             const dataFormatedArray2 = this.formatData(fieldsBack2.concat(dataBack2));
@@ -162,12 +164,13 @@ class ChartManager {
 
     displayChart(eventId) {
         const match = this.app.matchs.find(x => parseInt(x.eventId) === parseInt(eventId));
+        console.log(match);
         //get chart data
         const charts = this.createCharts(match);
         charts.forEach((data) => {
             //create div to display chart
             const chartDivId = randomstring.generate();
-            $("#match_" + match.eventId).append("<div id='" + chartDivId + "'></div>");
+            $("<div id='" + chartDivId + "'></div>").appendTo(".event");
             const pie_1_chart = new GoogleCharts.api.visualization.LineChart(document.getElementById(chartDivId));
 
             //get the options
