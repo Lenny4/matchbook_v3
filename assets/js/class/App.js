@@ -14,7 +14,8 @@ class App {
 
         const parsed = queryString.parse(location.search);
         if (typeof parsed.id === "string") {
-            this.socket.emit('event', {name: "get_event", value: {id: parsed.id}});
+            //todo test with get_event
+            this.socket.emit('event', {name: "get_clean_event", value: {id: parsed.id}});
         } else {
             this.socket.emit('event', {name: "all_events", value: null});
         }
@@ -30,7 +31,7 @@ class App {
                     this.initTabs();
                     this.registerEvent();
                     break;
-                case 'get_event':
+                case 'get_clean_event':
                     const match = JSON.parse(data.value);
                     this.matchs.push(match);
                     this.chartManager.displayChart(match.eventId);

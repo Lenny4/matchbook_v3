@@ -28,6 +28,29 @@ class MySql {
         );
     }
 
+    getCleanEvent(id, callback) {
+        const sql = `SELECT json FROM clean_event WHERE eventId = ? LIMIT 1;`;
+        this.pool.execute(
+            sql,
+            [id],
+            (err, cleanEvent, fields) => {
+                if (err) console.log(err);
+                callback(cleanEvent[0]);
+            }
+        );
+    }
+
+    saveCleanEvent(cleanEvent, callback) {
+        this.pool.execute(
+            'INSERT INTO `clean_event`(`eventId`, `start`, `json`) VALUES (?, ?, ?);',
+            [(cleanEvent.eventId).toString(), parseInt(cleanEvent.start / 1000), JSON.stringify(cleanEvent)],
+            (err, results, fields) => {
+                if (err) console.log(err);
+                callback();
+            }
+        );
+    }
+
     getEvent(id, callback) {
         const sql = `SELECT json FROM event WHERE eventId = ? LIMIT 1;`;
         this.pool.execute(
@@ -40,15 +63,36 @@ class MySql {
         );
     }
 
-    // insertNotificationNewMessage(notificationId, data) {
-    //     this.pool.execute(
-    //         'INSERT INTO `notification_new_message`(`id`, `sender_id`, `chat_room_id`, `chat_type`, `nb_message`, `notification_id`, `deletedAt`) VALUES (NULL, ?, ?, ?, ?, ?, NULL);',
-    //         [data.senderId, data.chatRoomId, data.chatType, 1, notificationId],
-    //         (err, results, fields) => {
-    //             if (err) console.log(err);
-    //         }
-    //     );
-    // }
+    createMissingTables(callback) {
+        const sql = `CREATE TABLE IF NOT EXISTS clean_event (
+                      id int(11) NOT NULL AUTO_INCREMENT,
+                      eventId varchar(255) NOT NULL,
+                      start int(11) NOT NULL,
+                      json longtext NOT NULL,
+                      PRIMARY KEY (id)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=latin1;`;
+        this.pool.execute(
+            sql,
+            [],
+            (err, event, fields) => {
+                if (err) console.log(err);
+                callback();
+            }
+        );
+    }
+
+    truncateCleanEvent(callback) {
+        console.log("truncate clean event");
+        const sql = `TRUNCATE clean_event;`;
+        this.pool.execute(
+            sql,
+            [],
+            (err, event, fields) => {
+                if (err) console.log(err);
+                callback();
+            }
+        );
+    }
 }
 
 module.exports = MySql;

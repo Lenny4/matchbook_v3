@@ -34,21 +34,25 @@ class ChartManager {
     createCharts(match) {
         const result = [];
 
-        //region create charts
-        match.markets.runners.forEach((runner) => {
-            const fieldsBack = ['time', runner.name, this.pointLabel, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"];
-            const fieldsBack2 = ['time', runner.name, this.pointLabel];
-
-            const dataFormatedArray = Function.formatData(fieldsBack, runner, true, [3, 4, 5, 6], 400);
-            const dataFormatedArray2 = Function.formatData(fieldsBack2, runner);
-
-            const bets = Function.findTopAndBottom(dataFormatedArray);
-
-            this.displayBetsOnChart(dataFormatedArray, bets);
-
-            this.addChartToDisplayChart(result, runner.name, dataFormatedArray2);
-            this.addChartToDisplayChart(result, runner.name, dataFormatedArray);
+        //todo
+        match.json.forEach((runner) => {
+            const bets = runner.bets;
         });
+        //region create charts
+        // match.markets.runners.forEach((runner) => {
+        //     const fieldsBack = ['time', runner.name, this.pointLabel, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"];
+        //     const fieldsBack2 = ['time', runner.name, this.pointLabel];
+        //
+        //     const dataFormatedArray = Function.formatData(fieldsBack, runner, true, [3, 4, 5, 6], 400);
+        //     const dataFormatedArray2 = Function.formatData(fieldsBack2, runner);
+        //
+        //     const bets = Function.findTopAndBottom(dataFormatedArray);
+        //
+        //     this.displayBetsOnChart(dataFormatedArray, bets);
+        //
+        //     this.addChartToDisplayChart(result, runner.name, dataFormatedArray2);
+        //     this.addChartToDisplayChart(result, runner.name, dataFormatedArray);
+        // });
         //endregion
 
         return result;
