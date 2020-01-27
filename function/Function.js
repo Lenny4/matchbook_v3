@@ -82,7 +82,7 @@ const Function = {
         return data;
     },
 
-    findTopAndBottom(data) {
+    findTopAndBottom(data, runnerName) {
         const bets = [];
 
         let lastTopBottom = null;
@@ -110,20 +110,28 @@ const Function = {
                 //region goingUp1
                 /**
                  * dans le cas ou availableAmount2 >= backOdd && availableAmount3 >= backOdd
+                 * et que availableAmount2 et availableAmount3 sont en train de monter
                  * dès qu'ils repassent en dessous de backOdd, si le availableAmount1 n'est pas allé au dessus de backOdd
-                 * sur les 100 dernière secondes
+                 * pendant que availableAmount2 && availableAmount3 étaient au dessus de backOdd
                  * on fait un back dès que la côte augmente 2 fois de suite
                  */
-                if (
-                    (availableAmount2 >= backOdd && availableAmount3 >= backOdd)
-                    && goingUp1 === false
-                ) {
+                const currentAvailableAmount2_3UpperBackOdd = availableAmount2 >= backOdd && availableAmount3 >= backOdd;
+                if (currentAvailableAmount2_3UpperBackOdd
+                    && (availableAmount2 > data[index - 1][4] && availableAmount3 > data[index - 1][5])
+                    && goingUp1 === false) {
                     goingUp1 = true;
-                    for (let i = index; i >= index - 100; i--) {
-                        if (data[i][3] > backOdd) {
+                }
+                if (!currentAvailableAmount2_3UpperBackOdd && goingUp1 === true) {
+                    let i = index;
+                    while (!(data[i][4] >= data[i][1] && data[i][5] >= data[i][1])) {
+                        i -= 1;
+                    }
+                    while (data[i][4] >= data[i][1] && data[i][5] >= data[i][1]) {
+                        if (data[i][3] >= data[i][1]) {
                             goingUp1 = false;
                             break;
                         }
+                        i -= 1;
                     }
                 }
                 if (

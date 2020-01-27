@@ -58,6 +58,7 @@ class ChartManager {
 
     displayChart(eventId) {
         const match = this.app.matchs.find(x => parseInt(x.eventId) === parseInt(eventId));
+        console.log(match);
         //get chart data
         const charts = this.createCharts(match);
         charts.forEach((data) => {

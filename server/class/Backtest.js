@@ -32,7 +32,7 @@ class Backtest {
                         const dataFormatedArray = Function.formatData(fieldsBack, runner, true, [3, 4, 5, 6], 400);
                         const dataFormatedArray2 = Function.formatData(fieldsBack2, runner);
 
-                        const bets = Function.findTopAndBottom(dataFormatedArray);
+                        const bets = Function.findTopAndBottom(dataFormatedArray, runner.name);
 
                         runnerData.charts.push(dataFormatedArray);
                         runnerData.charts.push(dataFormatedArray2);
