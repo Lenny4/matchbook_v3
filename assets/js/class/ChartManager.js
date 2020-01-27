@@ -34,26 +34,13 @@ class ChartManager {
     createCharts(match) {
         const result = [];
 
-        //todo
         match.json.forEach((runner) => {
             const bets = runner.bets;
+            runner.charts.forEach((chart) => {
+                this.displayBetsOnChart(chart, bets);
+                this.addChartToDisplayChart(result, runner.name, chart);
+            });
         });
-        //region create charts
-        // match.markets.runners.forEach((runner) => {
-        //     const fieldsBack = ['time', runner.name, this.pointLabel, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"];
-        //     const fieldsBack2 = ['time', runner.name, this.pointLabel];
-        //
-        //     const dataFormatedArray = Function.formatData(fieldsBack, runner, true, [3, 4, 5, 6], 400);
-        //     const dataFormatedArray2 = Function.formatData(fieldsBack2, runner);
-        //
-        //     const bets = Function.findTopAndBottom(dataFormatedArray);
-        //
-        //     this.displayBetsOnChart(dataFormatedArray, bets);
-        //
-        //     this.addChartToDisplayChart(result, runner.name, dataFormatedArray2);
-        //     this.addChartToDisplayChart(result, runner.name, dataFormatedArray);
-        // });
-        //endregion
 
         return result;
     }
@@ -71,7 +58,6 @@ class ChartManager {
 
     displayChart(eventId) {
         const match = this.app.matchs.find(x => parseInt(x.eventId) === parseInt(eventId));
-        console.log(match);
         //get chart data
         const charts = this.createCharts(match);
         charts.forEach((data) => {

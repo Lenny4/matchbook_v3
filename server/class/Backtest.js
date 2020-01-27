@@ -40,7 +40,10 @@ class Backtest {
                         cleanEvent.json.push(runnerData);
                     });
                     this.mySql.saveCleanEvent(cleanEvent, () => {
-                        callback(cleanEvent);
+                        const returnEvent = {
+                            json: cleanEvent,
+                        };
+                        callback(returnEvent);
                     });
                 });
             } else {
