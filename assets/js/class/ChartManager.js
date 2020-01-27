@@ -73,6 +73,7 @@ class ChartManager {
             //draw chart
             pie_1_chart.draw(data.chart, options);
         });
+        $(".event").prepend("<h3>" + match.name + "</h3>");
     }
 
     addChartToDisplayChart(result, title, data) {

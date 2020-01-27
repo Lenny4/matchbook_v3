@@ -16,6 +16,7 @@ class Backtest {
                     const cleanEvent = {
                         eventId: event.eventId,
                         start: event.start,
+                        name: event.name,
                         json: [],
                     };
                     event.markets.runners.forEach((runner, indexRunner) => {
