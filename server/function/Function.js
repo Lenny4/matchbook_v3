@@ -117,6 +117,14 @@ const Function = {
          * min backOdd value
          */
         let paramsGoingUp1_3 = 0.9;
+        /**
+         * backAmount2 et backAmount3 doivent être en dessous de
+         */
+        let paramsGoingUp1_4 = 0.8;
+        /**
+         * backAmount1 est au max 0.8 égale à backOdd
+         */
+        let paramsGoingUp1_5 = 0.8;
         //endregion
 
         /**
@@ -126,6 +134,7 @@ const Function = {
          * p = 1 / (g+1)
          */
         const percentDiffClosing = 1 - (1 / (gain + 1));
+        let dontUsePercentDiffClosingAfter = -60;
 
         data.forEach((array, index) => {
             const time = array[0];
@@ -154,12 +163,13 @@ const Function = {
                  * et que backOdd >= 0.9
                  * on fait un back dès que la côte augmente 1 fois de suite et si backAmount2 et backAmount3 sont
                  * au moins 0.9 égale à backOdd
+                 * au moment ou backAmount2 et backAmount3 < 0.8
                  */
                 const currentBackAmount2_3UpperBackOdd = backAmount2 >= backOdd && backAmount3 >= backOdd;
                 if (currentBackAmount2_3UpperBackOdd
                     && (backAmount2 > data[index - 1][4] && backAmount3 > data[index - 1][5])
                     && goingUp1 === false
-                    && backOdd >= paramsGoingUp1_3
+                    //***
                 ) {
                     goingUp1 = true;
                 }
@@ -169,7 +179,7 @@ const Function = {
                         i -= 1;
                     }
                     while (data[i][4] >= data[i][1] && data[i][5] >= data[i][1]) {
-                        if (data[i][3] >= data[i][1]) {
+                        if (data[i][3] >= data[i][1] * paramsGoingUp1_5) {
                             goingUp1 = false;
                             break;
                         }
@@ -180,6 +190,9 @@ const Function = {
                     goingUp1 === true
                     && (nbBackOddGoUp >= paramsGoingUp1_2)
                     && ((backAmount2 / backOdd < paramsGoingUp1_1) && (backAmount3 / backOdd) < paramsGoingUp1_1)
+                    && (backAmount2 < paramsGoingUp1_4 && backAmount3 < paramsGoingUp1_4)
+                    //test avec la condition ci dessous la ou il y a ***
+                    && backOdd >= paramsGoingUp1_3
                 ) {
                     goingUp1 = false;
                     nameBet = "goingUp1";
@@ -188,23 +201,12 @@ const Function = {
                 }
                 //endregion
 
-                //region goingUp2
-                /**
-                 * si backAmount2 > backOdd && backAmount4 > backOdd
-                 */
-                if (backAmount2 > backOdd && backAmount4 > backOdd) {
-                    goingUp = true;
-                    nameBet = "goingUp2";
-                    shape = "square";
-                }
-                //endregion
-
                 //region goingDown1
 
                 //endregion
 
                 //region closingGoingUp
-                if (bets.length > 0) {
+                if (bets.length > 0 && time < dontUsePercentDiffClosingAfter) {
                     const lastBet = bets[bets.length - 1];
                     if (lastBet.side === "lay") {
                         const betLayValue = lastBet.value;
@@ -241,12 +243,22 @@ const Function = {
     finishBet(bets, runnerName, event, minAvailableAmount, bet) {
         if (bets.length > 0 && bets.length % 2 !== 0) {
             const lastBet = bets[bets.length - 1];
+            bet.time = 0;
+            bet.shape = "circle";
+            const prices = event.markets.runners.find(runner => runner.name === runnerName).prices;
+            const price = prices[prices.length - 1].value;
             if (lastBet.side === "lay") {
-
+                bet.side = "back";
+                bet.name = "finishBack";
+                bet.color = "blue";
+                bet.value = this.getBackValue(price, minAvailableAmount);
             } else if (lastBet.side === "back") {
-
+                bet.side = "lay";
+                bet.name = "finishLay";
+                bet.color = "red";
+                bet.value = this.getLayValue(price, minAvailableAmount);
             }
-            console.log(bets, runnerName, bet);
+            bets.push(bet);
         }
     },
 
