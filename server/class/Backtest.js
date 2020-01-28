@@ -26,16 +26,18 @@ class Backtest {
                             bets: null,
                         };
 
-                        const fieldsBack = ['time', runner.name, this.pointLabel, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"];
-                        const fieldsBack2 = ['time', runner.name, this.pointLabel];
+                        const backArray = Function.formatData(
+                            ['time', runner.name, this.pointLabel],
+                            runner);
 
-                        const dataFormatedArray = Function.formatData(fieldsBack, runner, true, [3, 4, 5, 6], 400);
-                        const dataFormatedArray2 = Function.formatData(fieldsBack2, runner);
+                        const dataFormatedArray = Function.formatData(
+                            ['time', runner.name, this.pointLabel, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"]
+                            , runner, true, [3, 4, 5, 6], 400);
 
-                        const bets = Function.findTopAndBottom(dataFormatedArray, runner.name);
+                        const bets = Function.findTopAndBottom(dataFormatedArray, runner.name, event);
 
                         runnerData.charts.push(dataFormatedArray);
-                        runnerData.charts.push(dataFormatedArray2);
+                        runnerData.charts.push(backArray);
                         runnerData.bets = bets;
 
                         cleanEvent.json.push(runnerData);

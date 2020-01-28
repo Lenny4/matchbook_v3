@@ -7,8 +7,7 @@ class ChartManager {
         this.app = app;
         this.socket = socket;
         this.pointLabel = {'type': 'string', 'role': 'style'};
-        this.pointValueUp = "point { size: 12; shape-type: star; fill-color: red; }";
-        this.pointValueDown = "point { size: 12; shape-type: star; fill-color: blue; }";
+        this.pointValue = "point { size: 12; shape-type: %shape%; fill-color: %color%; }";
         this.options = {
             title: null,
             curveType: 'function',
@@ -46,11 +45,10 @@ class ChartManager {
     displayBetsOnChart(dataFormatedArray, bets) {
         bets.forEach((bet) => {
             const array = dataFormatedArray.find(x => x[0] === bet.time);
-            if (bet.side === "back") {
-                array[2] = this.pointValueDown;
-            } else {
-                array[2] = this.pointValueUp;
-            }
+            let pointValue = clone(this.pointValue);
+            pointValue = pointValue.replace('%shape%', bet.shape);
+            pointValue = pointValue.replace('%color%', bet.color);
+            array[2] = pointValue;
         });
     }
 

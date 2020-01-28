@@ -82,20 +82,26 @@ const Function = {
         return data;
     },
 
-    findTopAndBottom(data, runnerName) {
+    findTopAndBottom(data, runnerName, event) {
         const bets = [];
 
-        let lastTopBottom = null;
+        let lastTopBottom = "";
         let nbBackOddGoUp = 0;
+        // triangle | square | diamond | diamond | star | polygon | circle
+        let shape = null;
+
+        //region params
+        const paramsTimeStartBet = -1800;
 
         let goingUp1 = false;
         let paramsGoingUp1_1 = 0.9;
         let paramsGoingUp1_2 = 1;
+        //endregion
 
         data.forEach((array, index) => {
-            if (index > 1000) {
+            const time = array[0];
+            if (time > paramsTimeStartBet) {
                 let nameBet = null;
-                const time = array[0];
                 const backOdd = array[1];
                 const availableAmount1 = array[3];
                 const availableAmount2 = array[4];
@@ -145,6 +151,7 @@ const Function = {
                     goingUp1 = false;
                     nameBet = "goingUp1";
                     goingUp = true;
+                    shape = "triangle";
                 }
                 //endregion
 
@@ -155,34 +162,19 @@ const Function = {
                 if (availableAmount2 > backOdd && availableAmount4 > backOdd) {
                     goingUp = true;
                     nameBet = "goingUp2";
+                    shape = "square";
                 }
                 //endregion
 
-                //region goingDown1
-                /**
-                 * si availableAmount1 > backOdd && availableAmount2 > backOdd && availableAmount3 < backOdd
-                 */
-                if (availableAmount1 > backOdd && availableAmount2 > backOdd && availableAmount3 < backOdd) {
-                    goingDown = true;
-                    nameBet = "goingDown";
-                }
+                //region closingGoingUp
+
                 //endregion
 
-                const bet = {
-                    side: null,
-                    time: time,
-                    name: nameBet,
-                };
+                const betLay = goingUp && lastTopBottom !== "lay";
+                const betBack = goingDown && lastTopBottom !== "back";
 
-                if (goingUp && lastTopBottom !== "lay") {
-                    lastTopBottom = "lay";
-                    bet.side = "lay";
-                    bets.push(bet);
-                }
-                if (goingDown && lastTopBottom !== "back") {
-                    lastTopBottom = "back";
-                    bet.side = "back";
-                    bets.push(bet);
+                if (betLay || betBack) {
+                    lastTopBottom = this.placeBet(lastTopBottom, event, time, nameBet, runnerName, goingUp, goingDown, bets, shape);
                 }
 
                 if (backOdd < data[index - 1][1]) {
@@ -191,7 +183,40 @@ const Function = {
             }
         });
         return bets;
-    }
+    },
+
+    placeBet(lastTopBottom, event, time, nameBet, runnerName, goingUp, goingDown, bets, shape) {
+        const bet = {
+            side: null,
+            time: time,
+            name: nameBet,
+            color: null,
+            shape: shape,
+            value: null,
+        };
+        const price = event.markets.runners.find(runner => runner.name === runnerName).prices.find(price => price.time === time).value;
+        if (goingUp && lastTopBottom !== "lay") {
+            const layValue = price.filter(x => x.side === "lay" && x['available-amount'] >= 50).reduce((prev, current) => {
+                return (prev.odds < current.odds) ? prev : current
+            }).odds;
+            lastTopBottom = "lay";
+            bet.side = "lay";
+            bet.color = "red";
+            bet.value = layValue;
+            bets.push(bet);
+        }
+        if (goingDown && lastTopBottom !== "back") {
+            const backValue = price.filter(x => x.side === "back" && x['available-amount'] >= 50).reduce((prev, current) => {
+                return (prev.odds > current.odds) ? prev : current
+            }).odds;
+            lastTopBottom = "back";
+            bet.side = "back";
+            bet.color = "blue";
+            bet.value = backValue;
+            bets.push(bet);
+        }
+        return lastTopBottom;
+    },
 };
 
 module.exports = Function;
