@@ -1,4 +1,5 @@
 "use strict";
+const clone = require('clone');
 
 function findIndexOfNumbers(array) {
     const idxs = [];
@@ -89,6 +90,14 @@ const Function = {
         let nbBackOddGoUp = 0;
         // triangle | square | diamond | diamond | star | circle | polygon (is for closing)
         let shape = null;
+        const bet = {
+            side: null,
+            time: null,
+            name: null,
+            color: null,
+            shape: null,
+            value: null,
+        };
 
         //region params
         let paramsTimeStartBet = -1800;
@@ -96,8 +105,18 @@ const Function = {
         let minAvailableAmount = 50;
 
         let goingUp1 = false;
+        /**
+         * backAmount2 et backAmount3 sont au moins 0.9 égale à backOdd
+         */
         let paramsGoingUp1_1 = 0.9;
+        /**
+         * nombre de fois de suite que la backOdd est montée
+         */
         let paramsGoingUp1_2 = 1;
+        /**
+         * min backOdd value
+         */
+        let paramsGoingUp1_3 = 0.9;
         //endregion
 
         /**
@@ -132,13 +151,16 @@ const Function = {
                  * et que backAmount2 et backAmount3 sont en train de monter
                  * dès qu'ils repassent en dessous de backOdd, si le backAmount1 n'est pas allé au dessus de backOdd
                  * pendant que backAmount2 && backAmount3 étaient au dessus de backOdd
-                 * on fait un back dès que la côte augmente 2 fois de suite et si backAmount2 et backAmount3 sont
+                 * et que backOdd >= 0.9
+                 * on fait un back dès que la côte augmente 1 fois de suite et si backAmount2 et backAmount3 sont
                  * au moins 0.9 égale à backOdd
                  */
                 const currentBackAmount2_3UpperBackOdd = backAmount2 >= backOdd && backAmount3 >= backOdd;
                 if (currentBackAmount2_3UpperBackOdd
                     && (backAmount2 > data[index - 1][4] && backAmount3 > data[index - 1][5])
-                    && goingUp1 === false) {
+                    && goingUp1 === false
+                    && backOdd >= paramsGoingUp1_3
+                ) {
                     goingUp1 = true;
                 }
                 if (!currentBackAmount2_3UpperBackOdd && goingUp1 === true) {
@@ -200,7 +222,11 @@ const Function = {
                 const betBack = goingDown && lastTopBottom !== "back";
 
                 if (betLay || betBack) {
-                    lastTopBottom = this.placeBet(lastTopBottom, event, time, nameBet, runnerName, goingUp, goingDown, bets, shape, price, minAvailableAmount);
+                    const betObj = clone(bet);
+                    betObj.time = time;
+                    betObj.name = nameBet;
+                    betObj.shape = shape;
+                    lastTopBottom = this.placeBet(lastTopBottom, time, nameBet, goingUp, goingDown, bets, shape, price, minAvailableAmount, betObj);
                 }
 
                 if (backOdd < data[index - 1][1]) {
@@ -208,18 +234,23 @@ const Function = {
                 }
             }
         });
+        this.finishBet(bets, runnerName, event, minAvailableAmount, bet);
         return bets;
     },
 
-    placeBet(lastTopBottom, event, time, nameBet, runnerName, goingUp, goingDown, bets, shape, price, minAvailableAmount) {
-        const bet = {
-            side: null,
-            time: time,
-            name: nameBet,
-            color: null,
-            shape: shape,
-            value: null,
-        };
+    finishBet(bets, runnerName, event, minAvailableAmount, bet) {
+        if (bets.length > 0 && bets.length % 2 !== 0) {
+            const lastBet = bets[bets.length - 1];
+            if (lastBet.side === "lay") {
+
+            } else if (lastBet.side === "back") {
+
+            }
+            console.log(bets, runnerName, bet);
+        }
+    },
+
+    placeBet(lastTopBottom, time, nameBet, goingUp, goingDown, bets, shape, price, minAvailableAmount, bet) {
         if (goingUp && lastTopBottom !== "lay") {
             const layValue = this.getLayValue(price, minAvailableAmount);
             lastTopBottom = "lay";
