@@ -87,21 +87,32 @@ const Function = {
 
         let lastTopBottom = "";
         let nbBackOddGoUp = 0;
-        // triangle | square | diamond | diamond | star | polygon | circle
+        // triangle | square | diamond | diamond | star | circle | polygon (is for closing)
         let shape = null;
 
         //region params
-        const paramsTimeStartBet = -1800;
+        let paramsTimeStartBet = -1800;
+        let gain = 0.10;
+        let minAvailableAmount = 50;
 
         let goingUp1 = false;
         let paramsGoingUp1_1 = 0.9;
         let paramsGoingUp1_2 = 1;
         //endregion
 
+        /**
+         * g = gain en %
+         * p = back/lay
+         * g = (1-p) / p
+         * p = 1 / (g+1)
+         */
+        const percentDiffClosing = 1 - (1 / (gain + 1));
+
         data.forEach((array, index) => {
             const time = array[0];
             if (time > paramsTimeStartBet) {
                 let nameBet = null;
+                const price = event.markets.runners.find(runner => runner.name === runnerName).prices.find(price => price.time === time).value;
                 const backOdd = array[1];
                 const backAmount1 = array[3];
                 const backAmount2 = array[4];
@@ -166,15 +177,30 @@ const Function = {
                 }
                 //endregion
 
-                //region closingGoingUp
+                //region goingDown1
 
+                //endregion
+
+                //region closingGoingUp
+                if (bets.length > 0) {
+                    const lastBet = bets[bets.length - 1];
+                    if (lastBet.side === "lay") {
+                        const betLayValue = lastBet.value;
+                        const currentBackValue = this.getBackValue(price, minAvailableAmount);
+                        if (currentBackValue >= betLayValue * (1 + percentDiffClosing)) {
+                            goingDown = true;
+                            nameBet = "closingUp";
+                            shape = "polygon";
+                        }
+                    }
+                }
                 //endregion
 
                 const betLay = goingUp && lastTopBottom !== "lay";
                 const betBack = goingDown && lastTopBottom !== "back";
 
                 if (betLay || betBack) {
-                    lastTopBottom = this.placeBet(lastTopBottom, event, time, nameBet, runnerName, goingUp, goingDown, bets, shape);
+                    lastTopBottom = this.placeBet(lastTopBottom, event, time, nameBet, runnerName, goingUp, goingDown, bets, shape, price, minAvailableAmount);
                 }
 
                 if (backOdd < data[index - 1][1]) {
@@ -185,8 +211,7 @@ const Function = {
         return bets;
     },
 
-    placeBet(lastTopBottom, event, time, nameBet, runnerName, goingUp, goingDown, bets, shape) {
-        const minAvailableAmount = 50;
+    placeBet(lastTopBottom, event, time, nameBet, runnerName, goingUp, goingDown, bets, shape, price, minAvailableAmount) {
         const bet = {
             side: null,
             time: time,
@@ -195,11 +220,8 @@ const Function = {
             shape: shape,
             value: null,
         };
-        const price = event.markets.runners.find(runner => runner.name === runnerName).prices.find(price => price.time === time).value;
         if (goingUp && lastTopBottom !== "lay") {
-            const layValue = price.filter(x => x.side === "lay" && x['available-amount'] >= minAvailableAmount).reduce((prev, current) => {
-                return (prev.odds < current.odds) ? prev : current
-            }).odds;
+            const layValue = this.getLayValue(price, minAvailableAmount);
             lastTopBottom = "lay";
             bet.side = "lay";
             bet.color = "red";
@@ -207,9 +229,7 @@ const Function = {
             bets.push(bet);
         }
         if (goingDown && lastTopBottom !== "back") {
-            const backValue = price.filter(x => x.side === "back" && x['available-amount'] >= minAvailableAmount).reduce((prev, current) => {
-                return (prev.odds > current.odds) ? prev : current
-            }).odds;
+            const backValue = this.getBackValue(price, minAvailableAmount);
             lastTopBottom = "back";
             bet.side = "back";
             bet.color = "blue";
@@ -218,6 +238,18 @@ const Function = {
         }
         return lastTopBottom;
     },
+
+    getLayValue(price, minAvailableAmount) {
+        return price.filter(x => x.side === "lay" && x['available-amount'] >= minAvailableAmount).reduce((prev, current) => {
+            return (prev.odds < current.odds) ? prev : current
+        }).odds;
+    },
+
+    getBackValue(price, minAvailableAmount) {
+        return price.filter(x => x.side === "back" && x['available-amount'] >= minAvailableAmount).reduce((prev, current) => {
+            return (prev.odds > current.odds) ? prev : current
+        }).odds;
+    }
 };
 
 module.exports = Function;
