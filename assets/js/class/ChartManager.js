@@ -2,8 +2,6 @@
 const clone = require('clone');
 const randomstring = require("randomstring");
 
-const Function = require("../../../function/Function");
-
 class ChartManager {
     constructor(socket, app) {
         this.app = app;

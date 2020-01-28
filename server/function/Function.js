@@ -89,6 +89,8 @@ const Function = {
         let nbBackOddGoUp = 0;
 
         let goingUp1 = false;
+        let paramsGoingUp1_1 = 0.9;
+        let paramsGoingUp1_2 = 1;
 
         data.forEach((array, index) => {
             if (index > 1000) {
@@ -113,7 +115,8 @@ const Function = {
                  * et que availableAmount2 et availableAmount3 sont en train de monter
                  * dès qu'ils repassent en dessous de backOdd, si le availableAmount1 n'est pas allé au dessus de backOdd
                  * pendant que availableAmount2 && availableAmount3 étaient au dessus de backOdd
-                 * on fait un back dès que la côte augmente 2 fois de suite
+                 * on fait un back dès que la côte augmente 2 fois de suite et si availableAmount2 et availableAmount3 sont
+                 * au moins 0.9 égale à backOdd
                  */
                 const currentAvailableAmount2_3UpperBackOdd = availableAmount2 >= backOdd && availableAmount3 >= backOdd;
                 if (currentAvailableAmount2_3UpperBackOdd
@@ -136,8 +139,8 @@ const Function = {
                 }
                 if (
                     goingUp1 === true
-                    && (nbBackOddGoUp >= 2)
-                    && (backOdd > data[index - 1][1])
+                    && (nbBackOddGoUp >= paramsGoingUp1_2)
+                    && ((availableAmount2 / backOdd < paramsGoingUp1_1) && (availableAmount3 / backOdd) < paramsGoingUp1_1)
                 ) {
                     goingUp1 = false;
                     nameBet = "goingUp1";

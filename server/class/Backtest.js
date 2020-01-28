@@ -1,6 +1,6 @@
 "use strict";
 const Const = require('../../Const');
-const Function = require('../../function/Function');
+const Function = require('../function/Function');
 
 class Backtest {
     constructor(mySql) {

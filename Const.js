@@ -2,7 +2,7 @@
 
 const Env = {
     port: 3000,
-    nodeIP: "192.168.0.16",
+    nodeIP: "127.0.0.1",
     mysql: {
         host: '51.75.195.80',
         user: 'root',
