@@ -31,7 +31,7 @@ class Backtest {
                             runner);
 
                         const dataFormatedArray = Function.formatData(
-                            ['time', runner.name, this.pointLabel, "availableAmount1", "availableAmount2", "availableAmount3", "availableAmount4"]
+                            ['time', runner.name, this.pointLabel, "backAmount1", "backAmount2", "backAmount3", "backAmount4"]
                             , runner, true, [3, 4, 5, 6], 400);
 
                         const bets = Function.findTopAndBottom(dataFormatedArray, runner.name, event);
