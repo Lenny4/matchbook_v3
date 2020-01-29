@@ -1,1 +1,0 @@
-cat start.txt 1.json end.txt > 1.js
