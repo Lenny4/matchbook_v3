@@ -64,13 +64,20 @@ class MySql {
     }
 
     createMissingTables(callback) {
-        const sql = `CREATE TABLE IF NOT EXISTS clean_event (
-                      id int(11) NOT NULL AUTO_INCREMENT,
-                      eventId varchar(255) NOT NULL,
-                      start int(11) NOT NULL,
-                      json longtext NOT NULL,
-                      PRIMARY KEY (id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=latin1;`;
+        const sql = `CREATE TABLE IF NOT EXISTS matchbook_v2.clean_event
+                      (
+                         id        INT NOT NULL auto_increment,
+                         eventId   VARCHAR(255) NOT NULL,
+                         start     INT NOT NULL,
+                         json      LONGTEXT NOT NULL,
+                         race_name VARCHAR(255) NOT NULL,
+                         hour      INT NOT NULL,
+                         weekday   INT NOT NULL,
+                         bets      TEXT NOT NULL,
+                         gain      INT NOT NULL,
+                         PRIMARY KEY (id)
+                      )
+                    engine = innodb;`;
         this.pool.execute(
             sql,
             [],
