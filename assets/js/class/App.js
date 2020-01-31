@@ -57,10 +57,14 @@ class App {
 
     initTabs() {
         this.smallMatchs.forEach((match, index) => {
+            if (index === 0) console.log(match);
             $(".smallMatchs").append(`
             <div class="col-4">
-                <a class="card" target="_blank" style="margin-bottom: 10px" href="/?id=` + match.eventId + `">
-                    ` + match.name + `
+                <a data-weekday="` + match.weekday + `" data-raceName="` + match.raceName + `"
+                class="card" target="_blank" style="margin-bottom: 10px" href="/?id=` + match.eventId + `">
+                    <p>` + match.name + `</p>
+                    <p>` + match.nbBets + `</p>
+                    <p>` + parseInt(match.gain * 100) / 100 + `</p>
                 </a>
             </div>
             `);

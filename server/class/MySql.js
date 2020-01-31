@@ -17,7 +17,19 @@ class MySql {
     }
 
     getAllEvents(callback) {
-        const sql = `SELECT id, name, eventId, sportId, start FROM event;`;
+        const sql = `
+                     SELECT e.name,
+                           e.eventId,
+                           e.sportId,
+                           e.start,
+                           ce.raceName,
+                           ce.weekday,
+                           ce.nbBets,
+                           ce.gain
+                    FROM   event as e
+                           LEFT JOIN clean_event as ce
+                                  ON ce.eventid = e.eventid;  
+                    `;
         this.pool.execute(
             sql,
             [],
