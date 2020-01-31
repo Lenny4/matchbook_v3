@@ -11,7 +11,7 @@ const Backtest = require('./class/Backtest');
 const mySql = new MySql();
 const backtest = new Backtest(mySql);
 
-const resetTable = true;
+const resetTable = false;
 
 server.listen(port, () => {
     console.log('Server listening at port %d', port);
@@ -45,6 +45,13 @@ function initServer() {
                 case 'get_clean_event':
                     backtest.getCleanEvent(data.value.id, (event) => {
                         socket.emit('event', {name: 'get_clean_event', value: event.json});
+                    });
+                    break;
+                case 'backtest_all':
+                    mySql.truncateCleanEvent(() => {
+                        backtest.backTestAll(() => {
+                            socket.emit('event', {name: 'backtest_all', value: null});
+                        });
                     });
                     break;
                 default:

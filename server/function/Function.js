@@ -12,6 +12,29 @@ function findIndexOfNumbers(array) {
 }
 
 const Function = {
+    getGain(bets) {
+        const layBets = bets.filter(x => x.side === "lay").map((y) => {
+            return y.value;
+        });
+        const backBets = bets.filter(x => x.side === "back").map((y) => {
+            return y.value;
+        });
+        let win = 0;
+        if (layBets.length > 0 && backBets.length > 0) {
+            let avgLay = 0;
+            let avgBack = 0;
+            layBets.forEach((lay) => avgLay += lay);
+            backBets.forEach((back) => avgBack += back);
+            avgLay = avgLay / layBets.length;
+            avgBack = avgBack / backBets.length;
+
+            const p = avgBack / avgLay;
+            win = (p - 1) / (p);
+            win = parseInt(win * 10000) / 100
+        }
+        return win;
+    },
+
     formatData(fields, runner, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
         let data = [];
         runner.prices.forEach((price) => {
@@ -169,7 +192,7 @@ const Function = {
                 if (currentBackAmount2_3UpperBackOdd
                     && (backAmount2 > data[index - 1][4] && backAmount3 > data[index - 1][5])
                     && goingUp1 === false
-                    //***
+                //***
                 ) {
                     goingUp1 = true;
                 }
@@ -283,15 +306,27 @@ const Function = {
     },
 
     getLayValue(price, minAvailableAmount) {
-        return price.filter(x => x.side === "lay" && x['available-amount'] >= minAvailableAmount).reduce((prev, current) => {
-            return (prev.odds < current.odds) ? prev : current
-        }).odds;
+        let result = price.filter(x => x.side === "lay" && x['available-amount'] >= minAvailableAmount);
+        if (Array.isArray(result) && result.length >= 1) {
+            result = result.reduce((prev, current) => {
+                return (prev.odds < current.odds) ? prev : current
+            }).odds;
+        } else {
+            result = null;
+        }
+        return result;
     },
 
     getBackValue(price, minAvailableAmount) {
-        return price.filter(x => x.side === "back" && x['available-amount'] >= minAvailableAmount).reduce((prev, current) => {
-            return (prev.odds > current.odds) ? prev : current
-        }).odds;
+        let result = price.filter(x => x.side === "back" && x['available-amount'] >= minAvailableAmount);
+        if (Array.isArray(result) && result.length >= 1) {
+            result = result.reduce((prev, current) => {
+                return (prev.odds > current.odds) ? prev : current
+            }).odds;
+        } else {
+            result = null;
+        }
+        return result;
     }
 };
 

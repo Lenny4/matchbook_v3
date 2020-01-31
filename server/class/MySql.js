@@ -17,7 +17,19 @@ class MySql {
     }
 
     getAllEvents(callback) {
-        const sql = `SELECT id, name, eventId, sportId, start FROM event;`;
+        const sql = `
+                     SELECT e.name,
+                           e.eventId,
+                           e.sportId,
+                           e.start,
+                           ce.raceName,
+                           ce.weekday,
+                           ce.nbBets,
+                           ce.gain
+                    FROM   event as e
+                           LEFT JOIN clean_event as ce
+                                  ON ce.eventid = e.eventid;  
+                    `;
         this.pool.execute(
             sql,
             [],
@@ -42,8 +54,17 @@ class MySql {
 
     saveCleanEvent(cleanEvent, callback) {
         this.pool.execute(
-            'INSERT INTO `clean_event`(`eventId`, `start`, `json`) VALUES (?, ?, ?);',
-            [(cleanEvent.eventId).toString(), parseInt(cleanEvent.start / 1000), JSON.stringify(cleanEvent)],
+            'INSERT INTO `clean_event`(`eventId`, `start`, `json`, `raceName`, `hour`, `weekday`, `nbBets`, `gain`) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+            [
+                (cleanEvent.eventId).toString(),
+                parseInt(cleanEvent.start / 1000),
+                JSON.stringify(cleanEvent),
+                (cleanEvent.raceName).toString(),
+                parseInt(cleanEvent.hour),
+                parseInt(cleanEvent.weekday),
+                parseInt(cleanEvent.nbBets),
+                parseFloat(cleanEvent.gain),
+            ],
             (err, results, fields) => {
                 if (err) console.log(err);
                 callback();
@@ -64,13 +85,20 @@ class MySql {
     }
 
     createMissingTables(callback) {
-        const sql = `CREATE TABLE IF NOT EXISTS clean_event (
-                      id int(11) NOT NULL AUTO_INCREMENT,
-                      eventId varchar(255) NOT NULL,
-                      start int(11) NOT NULL,
-                      json longtext NOT NULL,
-                      PRIMARY KEY (id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=latin1;`;
+        const sql = `CREATE TABLE IF NOT EXISTS matchbook_v2.clean_event
+                      (
+                         id        INT NOT NULL auto_increment,
+                         eventId   VARCHAR(255) NOT NULL,
+                         start     INT NOT NULL,
+                         json      LONGTEXT NOT NULL,
+                         raceName VARCHAR(255) NOT NULL,
+                         hour      INT NOT NULL,
+                         weekday   INT NOT NULL,
+                         nbBets    INT NOT NULL,
+                         gain      FLOAT NOT NULL,
+                         PRIMARY KEY (id)
+                      )
+                    engine = innodb;`;
         this.pool.execute(
             sql,
             [],
