@@ -77,6 +77,10 @@ class Backtest {
             }
         });
     }
+
+    backTestAll(callback) {
+        callback();
+    }
 }
 
 module.exports = Backtest;

@@ -38,6 +38,9 @@ class App {
                     this.matchs.push(match);
                     this.chartManager.displayChart(match.eventId);
                     break;
+                case 'backtest_all':
+                    alert("all backtest done !");
+                    break;
                 default:
                     console.log("no action define", console.log(data));
             }
@@ -52,6 +55,9 @@ class App {
             } else if ($(e.target).hasClass("display-log")) {
                 console.log(this.matchs.find(x => parseInt(x.eventId) === parseInt(eventId)));
             }
+        });
+        $(document).on("click", "#backtest_all", (e) => {
+            this.socket.emit('event', {name: "backtest_all", value: null});
         });
     }
 
