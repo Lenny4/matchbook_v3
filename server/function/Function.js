@@ -12,6 +12,29 @@ function findIndexOfNumbers(array) {
 }
 
 const Function = {
+    getGain(bets) {
+        const layBets = bets.filter(x => x.side === "lay").map((y) => {
+            return y.value;
+        });
+        const backBets = bets.filter(x => x.side === "back").map((y) => {
+            return y.value;
+        });
+        let win = 0;
+        if (layBets.length > 0 && backBets.length > 0) {
+            let avgLay = 0;
+            let avgBack = 0;
+            layBets.forEach((lay) => avgLay += lay);
+            backBets.forEach((back) => avgBack += back);
+            avgLay = avgLay / layBets.length;
+            avgBack = avgBack / backBets.length;
+
+            const p = avgBack / avgLay;
+            win = (p - 1) / (p);
+            win = parseInt(win * 10000) / 100
+        }
+        return win;
+    },
+
     formatData(fields, runner, reduceTo1 = false, indexToFlat = [], numberFlat = 100) {
         let data = [];
         runner.prices.forEach((price) => {

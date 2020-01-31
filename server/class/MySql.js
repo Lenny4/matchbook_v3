@@ -42,8 +42,17 @@ class MySql {
 
     saveCleanEvent(cleanEvent, callback) {
         this.pool.execute(
-            'INSERT INTO `clean_event`(`eventId`, `start`, `json`) VALUES (?, ?, ?);',
-            [(cleanEvent.eventId).toString(), parseInt(cleanEvent.start / 1000), JSON.stringify(cleanEvent)],
+            'INSERT INTO `clean_event`(`eventId`, `start`, `json`, `raceName`, `hour`, `weekday`, `nbBets`, `gain`) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+            [
+                (cleanEvent.eventId).toString(),
+                parseInt(cleanEvent.start / 1000),
+                JSON.stringify(cleanEvent),
+                (cleanEvent.raceName).toString(),
+                parseInt(cleanEvent.hour),
+                parseInt(cleanEvent.weekday),
+                parseInt(cleanEvent.nbBets),
+                parseFloat(cleanEvent.gain),
+            ],
             (err, results, fields) => {
                 if (err) console.log(err);
                 callback();
@@ -70,11 +79,11 @@ class MySql {
                          eventId   VARCHAR(255) NOT NULL,
                          start     INT NOT NULL,
                          json      LONGTEXT NOT NULL,
-                         race_name VARCHAR(255) NOT NULL,
+                         raceName VARCHAR(255) NOT NULL,
                          hour      INT NOT NULL,
                          weekday   INT NOT NULL,
-                         bets      TEXT NOT NULL,
-                         gain      INT NOT NULL,
+                         nbBets    INT NOT NULL,
+                         gain      FLOAT NOT NULL,
                          PRIMARY KEY (id)
                       )
                     engine = innodb;`;
