@@ -59,22 +59,41 @@ class App {
         $(document).on("click", "#backtest_all", (e) => {
             this.socket.emit('event', {name: "backtest_all", value: null});
         });
+        $(document).on("click", "#truncate_all", (e) => {
+            this.socket.emit('event', {name: "truncate_all", value: null});
+        });
     }
 
     initTabs() {
+        let totalGain = 0;
+        let nbMatchs = 0;
         this.smallMatchs.forEach((match, index) => {
+            let gain = parseInt(match.gain * 100) / 100;
+            totalGain += gain;
+            nbMatchs++;
             if (index === 0) console.log(match);
-            $(".smallMatchs").append(`
+            const divDom = $(`
             <div class="col-4">
                 <a data-weekday="` + match.weekday + `" data-raceName="` + match.raceName + `"
                 class="card" target="_blank" style="margin-bottom: 10px" href="/?id=` + match.eventId + `">
                     <p>` + match.name + `</p>
                     <p>` + match.nbBets + `</p>
-                    <p>` + parseInt(match.gain * 100) / 100 + `</p>
+                    <p>` + gain + `</p>
                 </a>
             </div>
-            `);
+            `).appendTo($(".smallMatchs"));
+            const transparence = Math.abs(parseInt(gain) / 100);
+            const divColorDom = $(divDom).find("a");
+            if (gain > 0) {
+                $(divColorDom).css("background-color", "rgba(0,255,0," + transparence + ")")
+            } else if (gain < 0) {
+                $(divColorDom).css("background-color", "rgba(255,0,0," + transparence + ")")
+            }
         });
+        totalGain = parseInt(totalGain * 100) / 100;
+        $("#gain").html(totalGain);
+        $("#nbMatch").html(nbMatchs);
+        $("#gain_nbMatch").html(parseInt((totalGain / nbMatchs) * 100) / 100);
     }
 }
 

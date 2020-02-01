@@ -79,7 +79,23 @@ class Backtest {
     }
 
     backTestAll(callback) {
-        callback();
+        this.mySql.getAllEventIdWithNoCleanEvent((eventIds) => {
+            console.log(eventIds.length + " a backtest");
+            this.backTestEvents(eventIds, 0, () => {
+                callback();
+            });
+        });
+    }
+
+    backTestEvents(eventIds, index, callback) {
+        if (index === eventIds.length - 1) {
+            callback();
+        } else {
+            console.log(parseInt((index / eventIds.length) * 10000) / 100 + "%");
+            let eventId = eventIds[index];
+            if (typeof eventId !== "string") eventId = eventId.eventId;
+            this.getCleanEvent(eventId, (result) => this.backTestEvents(eventIds, (index + 1), callback));
+        }
     }
 }
 

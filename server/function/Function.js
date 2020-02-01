@@ -124,8 +124,8 @@ const Function = {
 
         //region params
         let paramsTimeStartBet = -1800;
-        let gain = 0.10;
-        let minAvailableAmount = 50;
+        let gain = 0.99;
+        let minAvailableAmount = 1;
 
         let goingUp1 = false;
         /**
@@ -139,7 +139,7 @@ const Function = {
         /**
          * min backOdd value
          */
-        let paramsGoingUp1_3 = 0.9;
+        let paramsGoingUp1_3 = 0.1;
         /**
          * backAmount2 et backAmount3 doivent être en dessous de
          */

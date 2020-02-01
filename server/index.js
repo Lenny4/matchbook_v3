@@ -48,10 +48,13 @@ function initServer() {
                     });
                     break;
                 case 'backtest_all':
+                    backtest.backTestAll(() => {
+                        socket.emit('event', {name: 'backtest_all', value: null});
+                    });
+                    break;
+                case 'truncate_all':
                     mySql.truncateCleanEvent(() => {
-                        backtest.backTestAll(() => {
-                            socket.emit('event', {name: 'backtest_all', value: null});
-                        });
+                        console.log("truncate all clean events");
                     });
                     break;
                 default:

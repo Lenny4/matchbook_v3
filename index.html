@@ -14,7 +14,13 @@
     }
 </style>
 <div class="row">
-    <button id="backtest_all" type="button" class="btn btn-primary">backtest all</button>
+    <button style="margin-left: 15px" id="backtest_all" type="button" class="btn btn-primary">backtest all</button>
+    <button style="margin-left: 100px" id="truncate_all" type="button" class="btn btn-danger">truncate all</button>
+    <div>
+        result: <span id="gain"></span>%<br>
+        nbMatchs: <span id="nbMatch"></span>
+        gain par match: <span id="gain_nbMatch"></span>%
+    </div>
 </div>
 <div class="row smallMatchs" style="margin: 10px"></div>
 <div class="event" style="margin: 10px"></div>

@@ -28,8 +28,22 @@ class MySql {
                            ce.gain
                     FROM   event as e
                            LEFT JOIN clean_event as ce
-                                  ON ce.eventid = e.eventid;  
+                                  ON ce.eventId = e.eventId;  
                     `;
+        this.pool.execute(
+            sql,
+            [],
+            (err, events, fields) => {
+                if (err) console.log(err);
+                callback(events);
+            }
+        );
+    }
+
+    getAllEventIdWithNoCleanEvent(callback) {
+        const sql = ` SELECT e.eventId
+                        FROM   event AS e
+                        WHERE  e.eventId NOT IN(SELECT ce.eventId FROM   clean_event AS ce);`;
         this.pool.execute(
             sql,
             [],
